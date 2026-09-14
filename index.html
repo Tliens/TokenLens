@@ -10,6 +10,8 @@
 <link rel="alternate" hreflang="en" href="https://tliens.github.io/TokenLens/?lang=en">
 <link rel="alternate" hreflang="x-default" href="https://tliens.github.io/TokenLens/">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TokenLens">
 <meta property="og:title" content="TokenLens — Free Token Counter & LLM Cost Comparison | Token 计数器">
@@ -175,6 +177,13 @@
   .faq-item:last-child{border-bottom:none;padding-bottom:0}
   .faq-item h3{margin:0 0 4px;font-size:14px;font-weight:750}
   .faq-item p{margin:0;color:var(--muted);font-size:13px}
+  .calc-controls{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px}
+  .calc-lab{display:flex;align-items:baseline;gap:8px;font-size:13px;font-weight:650;margin-bottom:6px}
+  .calc-lab output{font-size:17px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .calc-lab span:last-child{color:var(--muted);font-weight:500;font-size:12px}
+  input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:22px;margin:0}
+  .calc-best{background:color-mix(in srgb, var(--good) 9%, transparent)}
+  @media (max-width:640px){.calc-controls{grid-template-columns:1fr}}
   @media (max-width:640px){
     .crow{grid-template-columns:96px 1fr 62px}
     .header-in{padding:12px 14px}
@@ -211,6 +220,7 @@
       <button class="btn" id="sampleBtn" data-i18n="sample">填入示例</button>
       <button class="btn" id="pasteBtn" data-i18n="paste">粘贴</button>
       <button class="btn" id="clearBtn" data-i18n="clear">清空</button>
+      <button class="btn" id="copyBtn" data-i18n="copyResults">复制结果</button>
     </div>
     <div class="stats">
       <div class="stat big"><span class="badge" id="badgeO"></span><div class="v" id="stO">0</div><div class="k" data-i18n="statExact">精确 Token 数（o200k）</div></div>
@@ -269,16 +279,44 @@
     <p class="note" data-i18n="tableNote">价格为美元 / 每百万 token；「精确」徽标表示该行 token 数为官方分词器精确值，其他厂商为估算换算。</p>
   </section>
 
-  <!-- ④ 说明 -->
+  <!-- ④ 月度成本计算器 -->
   <section class="card">
-    <h2 data-i18n="estTitle">④ 计数与估算说明</h2>
+    <h2 data-i18n="calcTitle">④ 月度成本计算器</h2>
+    <p class="sub" data-i18n="calcSub">拖动滑杆设置你的应用规模，实时对比各模型每月账单（输入 + 输出）。</p>
+    <div class="calc-controls">
+      <div class="calc-block">
+        <div class="calc-lab"><span data-i18n="calcIn">每月输入</span><output id="calcInVal">5M</output><span>tokens</span></div>
+        <input type="range" id="calcIn" min="0" max="100" value="47" aria-label="input tokens per month">
+      </div>
+      <div class="calc-block">
+        <div class="calc-lab"><span data-i18n="calcOut">每月输出</span><output id="calcOutVal">1M</output><span>tokens</span></div>
+        <input type="range" id="calcOut" min="0" max="100" value="28" aria-label="output tokens per month">
+      </div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th data-i18n="colModel">模型</th>
+          <th data-i18n="calcColIn">输入费用</th>
+          <th data-i18n="calcColOut">输出费用</th>
+          <th data-i18n="calcColTotal">月总计</th>
+        </tr></thead>
+        <tbody id="calcBody"></tbody>
+      </table>
+    </div>
+    <p class="note" data-i18n="calcNote">按官方标价近似估算，未包含缓存折扣与批量折扣。</p>
+  </section>
+
+  <!-- ⑤ 说明 -->
+  <section class="card">
+    <h2 data-i18n="estTitle">⑤ 计数与估算说明</h2>
     <p class="sub" style="margin-bottom:8px" data-i18n="estBody">「精确」表示使用官方分词器逐 token 计算，结果与 OpenAI 官方完全一致；「≈」表示按各厂商分词器对中英文压缩率差异的经验系数换算，误差通常在 ±10%~20%。离线或分词库加载失败时自动退化为启发式估算（中文约 1 token/字、英文约 1.35 token/词）。各模型上下文与价格数据来自 LiteLLM 开源数据库并定时同步，为官方定价的近似，实际以各平台为准。</p>
     <p class="note" data-i18n="privacy">🔒 隐私：纯前端本地计算，文本不会上传到任何服务器；模型价格数据为唯一的外部请求。</p>
   </section>
 
   <!-- ⑤ FAQ -->
   <section class="card">
-    <h2 data-i18n="faqTitle">⑤ 常见问题</h2>
+    <h2 data-i18n="faqTitle">⑥ 常见问题</h2>
     <p class="sub" style="margin-bottom:8px" data-i18n="faqSub">关于 Token 计数、精确度与隐私的常见问题。</p>
     <div class="faq-item"><h3 data-i18n="faq1q">1000 个汉字是多少 token？</h3><p data-i18n="faq1a">取决于分词器：GPT-5 / GPT-4o 的 o200k 词表对中文约 0.9–1.1 token/字（1000 字约 900–1100 token），较老的 cl100k 词表约 1.4 token/字，DeepSeek、Qwen、GLM 等模型的中文压缩率更高（约 0.6–0.8 token/字）。把文本粘贴到上方即可得到各模型的精确/估算值。</p></div>
     <div class="faq-item"><h3 data-i18n="faq2q">计数结果精确吗？</h3><p data-i18n="faq2a">OpenAI 系模型为官方 o200k / cl100k 分词器逐 token 计算，与官方完全一致；其他厂商（Claude、Gemini、DeepSeek 等）词表未公开，按经验系数估算，误差约 ±10%~20%，页面中以「估算」徽标标注。</p></div>
@@ -325,12 +363,24 @@ const I18N = {
     colIn:'输入 $/1M', colOut:'输出 $/1M', colFits:'可容纳份数',
     tableNote:'价格为美元 / 每百万 token；「精确」徽标表示该行 token 数为官方分词器精确值，其他厂商为估算换算。',
     fits:'份', overCtx:'超出上下文',
-    estTitle:'④ 计数与估算说明',
+    calcTitle:'④ 月度成本计算器',
+    calcSub:'拖动滑杆设置你的应用规模，实时对比各模型每月账单（输入 + 输出）。',
+    calcIn:'每月输入',
+    calcOut:'每月输出',
+    calcColIn:'输入费用',
+    calcColOut:'输出费用',
+    calcColTotal:'月总计',
+    calcCheapest:'最便宜',
+    calcNote:'按官方标价近似估算，未包含缓存折扣与批量折扣。',
+    copyResults:'复制结果',
+    copied:'已复制 ✓',
+    dsDaily:'每日同步 · LiteLLM',
+    estTitle:'⑤ 计数与估算说明',
     estBody:'「精确」表示使用官方分词器逐 token 计算，结果与 OpenAI 官方完全一致；「≈」表示按各厂商分词器对中英文压缩率差异的经验系数换算，误差通常在 ±10%~20%。离线或分词库加载失败时自动退化为启发式估算（中文约 1 token/字、英文约 1.35 token/词）。各模型上下文与价格数据来自 LiteLLM 开源数据库并定时同步，为官方定价的近似，实际以各平台为准。',
     privacy:'🔒 隐私：纯前端本地计算，文本不会上传到任何服务器；模型价格数据为唯一的外部请求。',
     heroTitle:'免费 Token 计数器 — 大模型 Token 计数 · 上下文窗口 · 成本对比',
     heroSub:'用 OpenAI 官方分词器精确统计文本 Token，一屏对比 GPT-5、Claude、Gemini、DeepSeek、Qwen、GLM、Kimi、Grok 等 22+ 大模型的上下文窗口与 API 价格。全部在浏览器本地完成：免费、免注册、文本不上传。',
-    faqTitle:'⑤ 常见问题',
+    faqTitle:'⑥ 常见问题',
     faqSub:'关于 Token 计数、精确度与隐私的常见问题。',
     faq1q:'1000 个汉字是多少 token？',
     faq1a:'取决于分词器：GPT-5 / GPT-4o 的 o200k 词表对中文约 0.9–1.1 token/字（1000 字约 900–1100 token），较老的 cl100k 词表约 1.4 token/字，DeepSeek、Qwen、GLM 等模型的中文压缩率更高（约 0.6–0.8 token/字）。把文本粘贴到上方即可得到各模型的精确/估算值。',
@@ -373,12 +423,24 @@ const I18N = {
     colIn:'Input $/1M', colOut:'Output $/1M', colFits:'Copies that fit',
     tableNote:'Prices in USD per 1M tokens; the「Exact」badge marks rows counted with the official tokenizer — others are estimates.',
     fits:'×', overCtx:'Over context',
-    estTitle:'④ How counting & estimates work',
+    calcTitle:'④ Monthly Cost Calculator',
+    calcSub:'Drag the sliders to match your app\'s scale and compare monthly bills (input + output) across models in real time.',
+    calcIn:'Input / mo',
+    calcOut:'Output / mo',
+    calcColIn:'Input cost',
+    calcColOut:'Output cost',
+    calcColTotal:'Monthly total',
+    calcCheapest:'Cheapest',
+    calcNote:'Approximate official prices; cache and batch discounts not included.',
+    copyResults:'Copy summary',
+    copied:'Copied ✓',
+    dsDaily:'Daily sync · LiteLLM',
+    estTitle:'⑤ How counting & estimates work',
     estBody:'「Exact」= official tokenizer, identical to OpenAI\'s own count; 「≈」= converted with per-vendor empirical factors (±10–20% error). If offline, a heuristic is used (~1 token/CJK char, ~1.35 tokens/English word). Context and pricing data come from the open-source LiteLLM database; treat all prices as approximations — official vendor pages are authoritative.',
     privacy:'🔒 Privacy: runs 100% locally; your text is never uploaded. The only external request is the model pricing data.',
     heroTitle:'Free Token Counter — LLM Token Counting, Context Windows & Cost Comparison',
     heroSub:'Count tokens exactly with OpenAI\'s official tokenizer and compare context windows and API prices across GPT-5, Claude, Gemini, DeepSeek, Qwen, GLM, Kimi, Grok and 22+ models — all in your browser: free, no sign-up, your text never leaves your device.',
-    faqTitle:'⑤ FAQ',
+    faqTitle:'⑥ FAQ',
     faqSub:'Common questions about token counting, accuracy and privacy.',
     faq1q:'How many tokens is 1000 Chinese characters?',
     faq1a:'It depends on the tokenizer: GPT-5 / GPT-4o\'s o200k vocab encodes Chinese at roughly 0.9–1.1 tokens per character (≈900–1100 tokens per 1000 chars), the older cl100k needs about 1400, while DeepSeek, Qwen and GLM compress Chinese better (~0.6–0.8/char). Paste your text above for exact per-model numbers.',
@@ -501,6 +563,7 @@ const state = {
   encO: null, encC: null,      // o200k / cl100k 编码器
   tokMode: 'loading',          // loading | exact | offline
   dataSource: 'loading',       // loading | live | cached | bundled
+  liveSource: null,            // live 数据来源：daily（每日构建的 data.json）| direct（手动直连全量）
   liveTime: Number(store.get('tl_live_time')) || null,
 };
 
@@ -625,20 +688,21 @@ function prettyName(key, fbName){
   if (/^o\d/i.test(s))                             return s.toLowerCase();
   return fbName || s;
 }
-function applyLive(entry, model){
-  model.live = {
-    key: entry.key,
-    ctx: entry.max_input_tokens ?? entry.max_tokens ?? null,
-    out: entry.max_output_tokens ?? entry.max_tokens ?? null,
-    pin: entry.input_cost_per_token != null ? entry.input_cost_per_token * 1e6 : null,
-    pout: entry.output_cost_per_token != null ? entry.output_cost_per_token * 1e6 : null,
-  };
-  model.name = prettyName(entry.key, model.baseName);
+function applyResolved(m, d){
+  m.live = { key: d.key, ctx: d.ctx ?? null, out: d.out ?? null, pin: d.pin ?? null, pout: d.pout ?? null };
+  m.name = prettyName(d.key, m.baseName);
 }
 function resolveAll(db){
   for (const m of MODELS){
     const e = pickEntry(db, m.re);
-    if (e) applyLive(e, m);
+    if (!e) continue;
+    applyResolved(m, {
+      key: e.key,
+      ctx: e.max_input_tokens ?? e.max_tokens ?? null,
+      out: e.max_output_tokens ?? e.max_tokens ?? null,
+      pin: e.input_cost_per_token != null ? e.input_cost_per_token * 1e6 : null,
+      pout: e.output_cost_per_token != null ? e.output_cost_per_token * 1e6 : null,
+    });
   }
 }
 function saveCache(){
@@ -655,20 +719,55 @@ function loadCache(){
     return c;
   }catch(e){ return null; }
 }
-async function loadLiveData(){
+function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { cache: 'no-store', signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
+/* 启动路径：优先加载每日构建的精简 data.json（几十 KB），
+   失败则直连 LiteLLM 全量数据库，再失败回退本地缓存 / 内置兜底 */
+async function loadDailyData(){
+  const res = await fetchWithTimeout('./data.json', 8000);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const d = await res.json();
+  let n = 0;
+  for (const m of MODELS){ const r = d.models && d.models[m.id]; if (r){ applyResolved(m, r); n++; } }
+  if (!n) throw new Error('empty data');
+  state.liveTime = d.updated || Date.now();
+  state.dataSource = 'live';
+  state.liveSource = 'daily';
+}
+async function fetchLiveDirect(){
+  const res = await fetchWithTimeout(LITELLM_URL, 15000);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const db = await res.json();
+  resolveAll(db);
+  saveCache();
+  state.liveTime = Date.now();
+  state.dataSource = 'live';
+  state.liveSource = 'direct';
+}
+async function bootData(){
   setStatus('loading');
-  try{
-    const res = await fetch(LITELLM_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const db = await res.json();
-    resolveAll(db);
-    saveCache();
-    state.liveTime = Date.now();
-    state.dataSource = 'live';
-  }catch(e){
+  try{ await loadDailyData(); }
+  catch(e){
+    try{ await fetchLiveDirect(); }
+    catch(e2){
+      const c = loadCache();
+      if (c){ state.liveTime = c.ts; state.dataSource = 'cached'; }
+      else state.dataSource = 'bundled';
+    }
+  }
+  setStatus(state.dataSource);
+  renderAll();
+}
+async function refreshLive(){
+  setStatus('loading');
+  try{ await fetchLiveDirect(); }
+  catch(e){
     const c = loadCache();
     if (c){ state.liveTime = c.ts; state.dataSource = 'cached'; }
-    else state.dataSource = 'bundled';
+    else { state.dataSource = state.liveTime ? 'cached' : 'bundled'; }
   }
   setStatus(state.dataSource);
   renderAll();
@@ -677,7 +776,9 @@ function setStatus(s){
   const dot = $('#statusDot'), txt = $('#statusText');
   dot.className = 'dot ' + (s === 'live' ? 'live' : s === 'cached' ? 'cached' : s === 'loading' ? 'loading' : 'offline');
   const time = state.liveTime ? ' · ' + t('updated') + new Date(state.liveTime).toLocaleString(state.lang === 'zh' ? 'zh-CN' : 'en-US', { hour12: false }) : '';
-  txt.textContent = (s === 'live' ? t('dsLive') : s === 'cached' ? t('dsCached') : s === 'loading' ? t('dsLoading') : t('dsBundled')) + time;
+  const label = s === 'live' ? (state.liveSource === 'daily' ? t('dsDaily') : t('dsLive'))
+    : s === 'cached' ? t('dsCached') : s === 'loading' ? t('dsLoading') : t('dsBundled');
+  txt.textContent = label + time;
 }
 
 /* ================= 模型行数据（合并 兜底/在线 + 估算 tokens） ================= */
@@ -849,11 +950,47 @@ function renderTable(){
     tb.appendChild(tr);
   }
 }
+/* ④ 月度成本计算器：滑杆 0-100 → 每月 token 用量（10^5 ≈ 0.1M 到 10^8.6 ≈ 400M，对数刻度） */
+function sliderTokens(v){ return Math.round(Math.pow(10, 5 + v * 0.036)); }
+function renderCalc(){
+  const inTok = sliderTokens(+$('#calcIn').value);
+  const outTok = sliderTokens(+$('#calcOut').value);
+  $('#calcInVal').textContent = fmtCtx(inTok);
+  $('#calcOutVal').textContent = fmtCtx(outTok);
+  const rows = MODELS.map(m => {
+    const d = { ...m.fb };
+    if (m.live) for (const [k, v] of Object.entries(m.live)) if (v != null) d[k] = v;
+    const cin = d.pin != null ? inTok * d.pin / 1e6 : null;
+    const cout = d.pout != null ? outTok * d.pout / 1e6 : null;
+    return { name: m.name || m.baseName, provider: m.provider, cin, cout, total: cin != null && cout != null ? cin + cout : null };
+  }).filter(r => r.total != null).sort((a, b) => a.total - b.total);
+  const body = $('#calcBody');
+  body.replaceChildren();
+  const min = rows.length ? rows[0].total : null;
+  for (const r of rows){
+    const tr = el('tr', r.total === min ? 'calc-best' : '');
+    const tdM = el('td');
+    const nm = el('div', 'mname');
+    const dot = el('span', 'pdot'); dot.style.background = PROVIDERS[r.provider].color;
+    nm.appendChild(dot);
+    nm.appendChild(el('span', null, r.name));
+    tdM.appendChild(nm);
+    tr.appendChild(tdM);
+    tr.appendChild(el('td', null, fmtMoney(r.cin)));
+    tr.appendChild(el('td', null, fmtMoney(r.cout)));
+    const tdT = el('td');
+    tdT.appendChild(el('span', null, fmtMoney(r.total)));
+    if (r.total === min) tdT.appendChild(el('span', 'tb exact', t('calcCheapest')));
+    tr.appendChild(tdT);
+    body.appendChild(tr);
+  }
+}
 function renderAll(){
   renderStats();
   renderChips();
   renderChart();
   renderTable();
+  renderCalc();
   setStatus(state.dataSource);
 }
 
@@ -892,10 +1029,34 @@ function bind(){
     document.documentElement.dataset.theme = state.theme;
     $('#themeBtn').textContent = state.theme === 'dark' ? '☀' : '☾';
   };
-  $('#refreshBtn').onclick = () => loadLiveData();
+  $('#refreshBtn').onclick = () => refreshLive();
   $('#sortSel').onchange = e => { state.sort = e.target.value; renderAll(); };
   $('#scaleSel').onchange = e => { state.scale = e.target.value; renderChart(); };
   $('#searchBox').addEventListener('input', e => { state.search = e.target.value; clearTimeout(debounceTimer); debounceTimer = setTimeout(renderAll, 180); });
+  $('#calcIn').addEventListener('input', renderCalc);
+  $('#calcOut').addEventListener('input', renderCalc);
+  $('#copyBtn').onclick = async () => {
+    if (!state.text.trim()) return;
+    const { base } = currentStats();
+    const zh = state.lang === 'zh';
+    const rows = modelRows().filter(r => r.cost != null).sort((a, b) => a.cost - b.cost).slice(0, 5);
+    const lines = [
+      (zh ? '字符 ' : 'chars ') + fmtInt(state.text.length) + ' ≈ ' + fmtInt(base) + ' tokens (o200k)',
+      zh ? '本次输入费用（美元）：' : 'Input cost (USD):',
+      ...rows.map((r, i) => `${i + 1}. ${r.name}: ${fmtMoney(r.cost)}`),
+      'https://tliens.github.io/TokenLens/',
+    ];
+    const txt = lines.join('\n');
+    try{ await navigator.clipboard.writeText(txt); }
+    catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(_){}
+      ta.remove();
+    }
+    $('#copyBtn').textContent = t('copied');
+    setTimeout(() => { $('#copyBtn').textContent = t('copyResults'); }, 1500);
+  };
 }
 
 const SAMPLE_TEXT = `大语言模型（LLM）并不真正"理解"文字：它们先把文本切分成 token——可能是一个汉字、半个单词、一段标点，甚至一串字节。Token 是大模型世界的通用货币：计费、上下文窗口、速率限制，全都按 token 计算。
@@ -912,7 +1073,7 @@ bind();
 applyI18n();
 renderAll();
 initTokenizer();
-loadLiveData();
+bootData();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "57701db41e554cca92790c640166982e"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

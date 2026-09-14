@@ -1,0 +1,160 @@
+{
+ "updated": 1789382949646,
+ "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+ "models": {
+  "gpt5": {
+   "key": "gpt-5",
+   "ctx": 272000,
+   "out": 128000,
+   "pin": 1.25,
+   "pout": 10
+  },
+  "gpt5mini": {
+   "key": "gpt-5-mini",
+   "ctx": 272000,
+   "out": 128000,
+   "pin": 0.25,
+   "pout": 2
+  },
+  "gpt5nano": {
+   "key": "gpt-5-nano",
+   "ctx": 272000,
+   "out": 128000,
+   "pin": 0.05,
+   "pout": 0.4
+  },
+  "gpt41": {
+   "key": "gpt-4.1",
+   "ctx": 1047576,
+   "out": 32768,
+   "pin": 2,
+   "pout": 8
+  },
+  "gpt4o": {
+   "key": "gpt-4o",
+   "ctx": 128000,
+   "out": 16384,
+   "pin": 2.5,
+   "pout": 10
+  },
+  "o4mini": {
+   "key": "o4-mini",
+   "ctx": 200000,
+   "out": 100000,
+   "pin": 1.1,
+   "pout": 4.4
+  },
+  "opus": {
+   "key": "claude-opus-5",
+   "ctx": 1000000,
+   "out": 128000,
+   "pin": 5,
+   "pout": 25
+  },
+  "sonnet": {
+   "key": "claude-sonnet-5",
+   "ctx": 1000000,
+   "out": 128000,
+   "pin": 2,
+   "pout": 10
+  },
+  "haiku": {
+   "key": "claude-haiku-4-5",
+   "ctx": 200000,
+   "out": 64000,
+   "pin": 1,
+   "pout": 5
+  },
+  "gempro": {
+   "key": "gemini-2.5-pro",
+   "ctx": 1048576,
+   "out": 65535,
+   "pin": 1.25,
+   "pout": 10
+  },
+  "gemflash": {
+   "key": "gemini/gemini-3.8-flash",
+   "ctx": 1048576,
+   "out": 65536,
+   "pin": 0.75,
+   "pout": 3.75
+  },
+  "dschat": {
+   "key": "deepseek/deepseek-v3.2",
+   "ctx": 163840,
+   "out": 163840,
+   "pin": 0.28,
+   "pout": 0.4
+  },
+  "dsreason": {
+   "key": "deepseek/deepseek-v4-pro",
+   "ctx": 1000000,
+   "out": 393216,
+   "pin": 1.32,
+   "pout": 3.96
+  },
+  "qwenmax": {
+   "key": "dashscope/qwen3.8-max",
+   "ctx": 991808,
+   "out": 131072,
+   "pin": 2,
+   "pout": 6
+  },
+  "qwenplus": {
+   "key": "dashscope/qwen3.7-plus",
+   "ctx": 991808,
+   "out": 65536,
+   "pin": null,
+   "pout": null
+  },
+  "glm": {
+   "key": "zai/glm-5.3",
+   "ctx": 1000000,
+   "out": 128000,
+   "pin": 1.4,
+   "pout": 4.4
+  },
+  "glmflash": {
+   "key": "zai/glm-5.3-flash",
+   "ctx": 1048576,
+   "out": 128000,
+   "pin": 0.15,
+   "pout": 0.5
+  },
+  "kimi": {
+   "key": "moonshot/kimi-k3",
+   "ctx": 1048576,
+   "out": 1048576,
+   "pin": 3,
+   "pout": 15
+  },
+  "grok": {
+   "key": "xai/grok-4.20",
+   "ctx": 1000000,
+   "out": 1000000,
+   "pin": 1.25,
+   "pout": 2.5
+  },
+  "llamamav": {
+   "key": "together_ai/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+   "ctx": null,
+   "out": null,
+   "pin": 0.27,
+   "pout": 0.85
+  },
+  "llamascout": {
+   "key": "together_ai/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+   "ctx": null,
+   "out": null,
+   "pin": 0.18,
+   "pout": 0.59
+  },
+  "mistral": {
+   "key": "mistral/mistral-large-latest",
+   "ctx": 262144,
+   "out": 262144,
+   "pin": 0.5,
+   "pout": 1.5
+  }
+ }
+}
