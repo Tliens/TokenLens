@@ -1082,14 +1082,6 @@ function bind(){
   // 顶部 Tab：平滑滚动到区块 + 滚动时高亮当前位置（scrollspy）
   const header = document.querySelector('header');
   const tabs = [...document.querySelectorAll('#topTabs .tab')];
-  tabs.forEach(a => a.addEventListener('click', e => {
-    e.preventDefault();
-    const target = document.querySelector(a.getAttribute('href'));
-    if (!target) return;
-    const y = target.getBoundingClientRect().top + window.scrollY - header.offsetHeight - 8;
-    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-    history.replaceState(null, '', a.getAttribute('href'));
-  }));
   const spy = () => {
     const pos = window.scrollY + header.offsetHeight + 48;
     let cur = 0;
@@ -1100,9 +1092,33 @@ function bind(){
     tabs.forEach((t, i) => t.classList.toggle('on', i === cur));
   };
   let spyTick = false;
-  window.addEventListener('scroll', () => {
+  const onScroll = () => {
     if (!spyTick){ spyTick = true; requestAnimationFrame(() => { spy(); spyTick = false; }); }
-  }, { passive: true });
+  };
+  /* capture 挂在 document 上：部分内嵌 WebView 程序化滚动不向 window 派发 scroll 事件 */
+  document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
+  tabs.forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (!target) return;
+    const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - header.offsetHeight - 8);
+    /* 某些内嵌 WebView 对 behavior:'smooth' 直接忽略：120ms 后未移动则退化为 rAF 手动动画 */
+    const start = window.scrollY, dist = y - start, t0 = performance.now();
+    let manual = false;
+    const animate = now => {
+      manual = true;
+      const p = Math.min(1, (now - t0) / 500);
+      window.scrollTo(0, start + dist * (0.5 - Math.cos(Math.PI * p) / 2));
+      if (p < 1) requestAnimationFrame(animate); else spy();
+    };
+    window.scrollTo({ top: y, behavior: 'smooth' });
+    setTimeout(() => {
+      if (!manual && Math.abs(window.scrollY - y) > 4 && Math.abs(window.scrollY - start) <= 4) requestAnimationFrame(animate);
+      else spy();
+    }, 120);
+    history.replaceState(null, '', a.getAttribute('href'));
+  }));
   spy();
 }
 
