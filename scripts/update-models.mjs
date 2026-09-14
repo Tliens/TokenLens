@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* 每日从 LiteLLM 开源数据库拉取模型上下文与价格，解析为精简 data.json 供前端优先加载。
    注意：MODELS 清单与解析逻辑（vt / pickEntry / cmpArr）需与 index.html 内联脚本保持同步。 */
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync } from 'node:fs';
 
 const LITELLM_URL = 'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json';
 
@@ -74,7 +74,18 @@ for (const m of MODELS){
   };
 }
 
-const out = { updated: Date.now(), source: LITELLM_URL, models };
-writeFileSync(new URL('../data.json', import.meta.url), JSON.stringify(out, null, 1) + '\n');
-console.log('resolved', Object.keys(models).length, 'of', MODELS.length, 'models');
-for (const [id, r] of Object.entries(models)) console.log(' ', id, '←', r.key, `${r.ctx ?? '?'} ctx, $${r.pin ?? '?'}/$${r.pout ?? '?'} per 1M`);
+/* updated 取上游文件的 Last-Modified（而非运行时刻）：
+   数据没变时输出完全一致，脚本不写文件 → Action 无空提交 */
+const lastMod = res.headers.get('last-modified');
+const updated = lastMod ? new Date(lastMod).getTime() : Date.now();
+const out = { updated, source: LITELLM_URL, models };
+
+const OUT = new URL('../data.json', import.meta.url);
+let prev = null;
+try { prev = JSON.parse(readFileSync(OUT, 'utf8')); } catch {}
+if (prev && JSON.stringify({ ...prev, updated: 0 }) === JSON.stringify({ ...out, updated: 0 })){
+  console.log('models unchanged; data.json left untouched');
+}else{
+  writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n');
+  console.log('data.json updated,', Object.keys(models).length, 'models');
+}
