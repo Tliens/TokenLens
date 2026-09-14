@@ -3,7 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TokenLens · 大模型 Token 计数与成本对比</title>
+<title>TokenLens — 免费 Token 计数器 & 大模型成本对比 | Free LLM Token Counter</title>
+<meta name="description" content="免费在线 Token 计数器：OpenAI 官方分词器精确计数，一屏对比 GPT-5、Claude、Gemini、DeepSeek、Qwen、GLM、Kimi 等 22+ 大模型的上下文窗口与 API 价格。纯本地计算、免注册、文本不上传。Free token counter & LLM cost comparison.">
+<link rel="canonical" href="https://tliens.github.io/TokenLens/">
+<link rel="alternate" hreflang="zh" href="https://tliens.github.io/TokenLens/?lang=zh">
+<link rel="alternate" hreflang="en" href="https://tliens.github.io/TokenLens/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://tliens.github.io/TokenLens/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TokenLens">
+<meta property="og:title" content="TokenLens — Free Token Counter & LLM Cost Comparison | Token 计数器">
+<meta property="og:description" content="Count tokens exactly and compare context windows & API prices across 22+ LLMs (GPT-5, Claude, Gemini, DeepSeek, Qwen, GLM, Kimi…). 100% local, free, no sign-up. 精确 Token 计数与大模型成本对比。">
+<meta property="og:url" content="https://tliens.github.io/TokenLens/">
+<meta property="og:image" content="https://tliens.github.io/TokenLens/og-image.png">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TokenLens — Free Token Counter & LLM Cost Comparison">
+<meta name="twitter:description" content="Exact token counting + context window & API price comparison for 22+ LLMs. Free, local, no sign-up.">
+<meta name="twitter:image" content="https://tliens.github.io/TokenLens/og-image.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebApplication","name":"TokenLens","url":"https://tliens.github.io/TokenLens/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","description":"Free online token counter and LLM cost & context window comparison for GPT-5, Claude, Gemini, DeepSeek, Qwen, GLM, Kimi and 22+ models.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"inLanguage":["zh-CN","en"]},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How many tokens is 1000 Chinese characters?","acceptedAnswer":{"@type":"Answer","text":"With GPT-5 / GPT-4o's o200k tokenizer roughly 900-1100 tokens (about 1 token per character); the older cl100k needs about 1400; Chinese-optimized models like DeepSeek and Qwen need only 600-800. Paste your text into TokenLens for exact per-model numbers."}},
+{"@type":"Question","name":"Is the token count exact?","acceptedAnswer":{"@type":"Answer","text":"OpenAI models are counted with the official o200k/cl100k tokenizers, identical to OpenAI's own count. Other vendors' vocabs are not public, so those numbers are empirical estimates (±10-20%)."}},
+{"@type":"Question","name":"Is TokenLens free and private?","acceptedAnswer":{"@type":"Answer","text":"Yes - it is free with no sign-up, and all counting happens locally in your browser. Your text is never uploaded; the only external request fetches model pricing data."}}
+]}]}
+</script>
 <style>
   :root{
     --bg:#f5f6fa; --card:#ffffff; --card2:#fafbfe; --text:#191d2b; --muted:#68708a;
@@ -141,6 +168,13 @@
   .foot{max-width:1100px;margin:0 auto;padding:0 20px 46px;color:var(--muted);font-size:12.5px;display:flex;flex-direction:column;gap:5px}
   .foot a{color:var(--accent);text-decoration:none}
   .empty{color:var(--muted);font-size:13px;padding:14px 4px}
+  .hero{margin:2px 2px 0}
+  h1{margin:0 0 8px;font-size:23px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+  .hero p{margin:0;color:var(--muted);font-size:13.5px}
+  .faq-item{padding:10px 0;border-bottom:1px solid var(--border)}
+  .faq-item:last-child{border-bottom:none;padding-bottom:0}
+  .faq-item h3{margin:0 0 4px;font-size:14px;font-weight:750}
+  .faq-item p{margin:0;color:var(--muted);font-size:13px}
   @media (max-width:640px){
     .crow{grid-template-columns:96px 1fr 62px}
     .header-in{padding:12px 14px}
@@ -153,7 +187,7 @@
 <body>
 <header>
   <div class="header-in">
-    <div class="brand"><div class="logo">T</div><span>TokenLens</span><small data-i18n="appSub"></small></div>
+    <div class="brand"><div class="logo">T</div><span>TokenLens</span><small data-i18n="appSub">大模型 Token 计数 · 上下文 · 成本对比</small></div>
     <div class="spacer"></div>
     <span class="status-chip"><span class="dot" id="statusDot"></span><span id="statusText"></span></span>
     <button class="iconbtn" id="refreshBtn" title="LiteLLM">↻</button>
@@ -163,84 +197,99 @@
 </header>
 
 <main>
+  <section class="hero">
+    <h1 data-i18n="heroTitle">免费 Token 计数器 — 大模型 Token 计数 · 上下文窗口 · 成本对比</h1>
+    <p data-i18n="heroSub">用 OpenAI 官方分词器精确统计文本 Token，一屏对比 GPT-5、Claude、Gemini、DeepSeek、Qwen、GLM、Kimi、Grok 等 22+ 大模型的上下文窗口与 API 价格。全部在浏览器本地完成：免费、免注册、文本不上传。</p>
+  </section>
+
   <!-- ① 输入 -->
   <section class="card">
-    <h2 data-i18n="inputTitle"></h2>
-    <p class="sub" data-i18n="inputSub"></p>
-    <textarea id="textInput" data-i18n-ph="inputPh" spellcheck="false"></textarea>
+    <h2 data-i18n="inputTitle">① 粘贴你的文本</h2>
+    <p class="sub" data-i18n="inputSub">所有计数均在浏览器本地完成，文本不会离开你的设备。</p>
+    <textarea id="textInput" data-i18n-ph="inputPh" placeholder="在此粘贴或输入文本……支持中英混排。" spellcheck="false"></textarea>
     <div class="tools">
-      <button class="btn" id="sampleBtn" data-i18n="sample"></button>
-      <button class="btn" id="pasteBtn" data-i18n="paste"></button>
-      <button class="btn" id="clearBtn" data-i18n="clear"></button>
+      <button class="btn" id="sampleBtn" data-i18n="sample">填入示例</button>
+      <button class="btn" id="pasteBtn" data-i18n="paste">粘贴</button>
+      <button class="btn" id="clearBtn" data-i18n="clear">清空</button>
     </div>
     <div class="stats">
-      <div class="stat big"><span class="badge" id="badgeO"></span><div class="v" id="stO">0</div><div class="k" data-i18n="statExact"></div></div>
-      <div class="stat"><span class="badge" id="badgeC"></span><div class="v" id="stC">0</div><div class="k" data-i18n="statCl"></div></div>
-      <div class="stat"><div class="v" id="stChars">0</div><div class="k" data-i18n="statChars"></div></div>
-      <div class="stat"><div class="v" id="stBytes">0</div><div class="k" data-i18n="statBytes"></div></div>
-      <div class="stat"><div class="v" id="stWords">0</div><div class="k" data-i18n="statWords"></div></div>
-      <div class="stat"><div class="v" id="stCjk">0</div><div class="k" data-i18n="statCjk"></div></div>
+      <div class="stat big"><span class="badge" id="badgeO"></span><div class="v" id="stO">0</div><div class="k" data-i18n="statExact">精确 Token 数（o200k）</div></div>
+      <div class="stat"><span class="badge" id="badgeC"></span><div class="v" id="stC">0</div><div class="k" data-i18n="statCl">cl100k 参考值</div></div>
+      <div class="stat"><div class="v" id="stChars">0</div><div class="k" data-i18n="statChars">字符数</div></div>
+      <div class="stat"><div class="v" id="stBytes">0</div><div class="k" data-i18n="statBytes">UTF-8 字节</div></div>
+      <div class="stat"><div class="v" id="stWords">0</div><div class="k" data-i18n="statWords">英文词数</div></div>
+      <div class="stat"><div class="v" id="stCjk">0</div><div class="k" data-i18n="statCjk">中文字符数</div></div>
     </div>
-    <p class="note" data-i18n="exactNote"></p>
+    <p class="note" data-i18n="exactNote">「精确」= OpenAI 官方分词器逐 token 计算（GPT-5 / GPT-4o 同款词表）；「估算」= 离线时的启发式近似。</p>
   </section>
 
   <!-- ② 上下文窗口对比 -->
   <section class="card">
-    <h2 data-i18n="chartTitle"></h2>
-    <p class="sub" data-i18n="chartSub"></p>
+    <h2 data-i18n="chartTitle">② 各模型上下文窗口对比</h2>
+    <p class="sub" data-i18n="chartSub">按厂商筛选、搜索或排序；柱上的红色刻度表示你的文本在上下文中的占用位置。</p>
     <div class="controls">
       <div class="chips" id="providerChips"></div>
-      <input type="text" class="search" id="searchBox" data-i18n-ph="searchPh">
+      <input type="text" class="search" id="searchBox" data-i18n-ph="searchPh" placeholder="搜索模型…">
       <select id="sortSel">
-        <option value="ctx" data-i18n="sortCtx"></option>
-        <option value="in" data-i18n="sortIn"></option>
-        <option value="cost" data-i18n="sortCost"></option>
-        <option value="name" data-i18n="sortName"></option>
+        <option value="ctx" data-i18n="sortCtx">上下文窗口（大→小）</option>
+        <option value="in" data-i18n="sortIn">输入单价（低→高）</option>
+        <option value="cost" data-i18n="sortCost">本次费用（低→高）</option>
+        <option value="name" data-i18n="sortName">按名称</option>
       </select>
       <select id="scaleSel">
-        <option value="linear" data-i18n="scaleLinear"></option>
-        <option value="log" data-i18n="scaleLog"></option>
+        <option value="linear" data-i18n="scaleLinear">线性刻度</option>
+        <option value="log" data-i18n="scaleLog">对数刻度</option>
       </select>
     </div>
     <div class="chart" id="chart"></div>
     <div class="legend">
-      <span><i class="l1"></i><span data-i18n="legendCtx"></span></span>
-      <span><i class="l2"></i><span data-i18n="legendMark"></span></span>
+      <span><i class="l1"></i><span data-i18n="legendCtx">模型上下文窗口</span></span>
+      <span><i class="l2"></i><span data-i18n="legendMark">你的文本位置</span></span>
     </div>
   </section>
 
   <!-- ③ 费用对比 -->
   <section class="card">
-    <h2 data-i18n="tableTitle"></h2>
-    <p class="sub" data-i18n="tableSub"></p>
+    <h2 data-i18n="tableTitle">③ 模型费用与容量对比</h2>
+    <p class="sub" data-i18n="tableSub">「本次输入费用」= 把你粘贴的整段文本作为一次输入发送的花费（不含输出）。</p>
     <div class="tw">
       <table>
         <thead><tr>
-          <th data-i18n="colModel"></th>
-          <th data-i18n="colCtx"></th>
-          <th data-i18n="colTok"></th>
-          <th data-i18n="colCost"></th>
-          <th data-i18n="colIn"></th>
-          <th data-i18n="colOut"></th>
-          <th data-i18n="colFits"></th>
+          <th data-i18n="colModel">模型</th>
+          <th data-i18n="colCtx">上下文窗口</th>
+          <th data-i18n="colTok">预估 Tokens</th>
+          <th data-i18n="colCost">本次输入费用</th>
+          <th data-i18n="colIn">输入 $/1M</th>
+          <th data-i18n="colOut">输出 $/1M</th>
+          <th data-i18n="colFits">可容纳份数</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
-    <p class="note" data-i18n="tableNote"></p>
+    <p class="note" data-i18n="tableNote">价格为美元 / 每百万 token；「精确」徽标表示该行 token 数为官方分词器精确值，其他厂商为估算换算。</p>
   </section>
 
   <!-- ④ 说明 -->
   <section class="card">
-    <h2 data-i18n="estTitle"></h2>
-    <p class="sub" style="margin-bottom:8px" data-i18n="estBody"></p>
-    <p class="note" data-i18n="privacy"></p>
+    <h2 data-i18n="estTitle">④ 计数与估算说明</h2>
+    <p class="sub" style="margin-bottom:8px" data-i18n="estBody">「精确」表示使用官方分词器逐 token 计算，结果与 OpenAI 官方完全一致；「≈」表示按各厂商分词器对中英文压缩率差异的经验系数换算，误差通常在 ±10%~20%。离线或分词库加载失败时自动退化为启发式估算（中文约 1 token/字、英文约 1.35 token/词）。各模型上下文与价格数据来自 LiteLLM 开源数据库并定时同步，为官方定价的近似，实际以各平台为准。</p>
+    <p class="note" data-i18n="privacy">🔒 隐私：纯前端本地计算，文本不会上传到任何服务器；模型价格数据为唯一的外部请求。</p>
+  </section>
+
+  <!-- ⑤ FAQ -->
+  <section class="card">
+    <h2 data-i18n="faqTitle">⑤ 常见问题</h2>
+    <p class="sub" style="margin-bottom:8px" data-i18n="faqSub">关于 Token 计数、精确度与隐私的常见问题。</p>
+    <div class="faq-item"><h3 data-i18n="faq1q">1000 个汉字是多少 token？</h3><p data-i18n="faq1a">取决于分词器：GPT-5 / GPT-4o 的 o200k 词表对中文约 0.9–1.1 token/字（1000 字约 900–1100 token），较老的 cl100k 词表约 1.4 token/字，DeepSeek、Qwen、GLM 等模型的中文压缩率更高（约 0.6–0.8 token/字）。把文本粘贴到上方即可得到各模型的精确/估算值。</p></div>
+    <div class="faq-item"><h3 data-i18n="faq2q">计数结果精确吗？</h3><p data-i18n="faq2a">OpenAI 系模型为官方 o200k / cl100k 分词器逐 token 计算，与官方完全一致；其他厂商（Claude、Gemini、DeepSeek 等）词表未公开，按经验系数估算，误差约 ±10%~20%，页面中以「估算」徽标标注。</p></div>
+    <div class="faq-item"><h3 data-i18n="faq3q">这个工具收费吗？文本安全吗？</h3><p data-i18n="faq3a">完全免费，无需注册。所有计数都在你的浏览器本地完成，文本不会上传到任何服务器；页面唯一的外部请求是拉取模型价格数据。</p></div>
+    <div class="faq-item"><h3 data-i18n="faq4q">支持哪些模型？数据多久更新？</h3><p data-i18n="faq4a">覆盖 OpenAI、Anthropic、Google、DeepSeek、阿里通义、智谱、月之暗面、xAI、Meta、Mistral 等 22+ 主流模型；上下文窗口与价格自动同步 LiteLLM 开源数据库（可手动刷新），断网时使用内置兜底数据。</p></div>
   </section>
 </main>
 
 <footer class="foot">
-  <span data-i18n="dataSource"></span>
-  <span data-i18n="copyright"></span>
+  <span data-i18n="dataSource">数据来源：LiteLLM model_prices_and_context_window（开源 · 社区维护）· 分词：js-tiktoken（o200k / cl100k）</span>
+  <span data-i18n="copyright">TokenLens · 仅供参考，定价可能有滞后，实际费用以各厂商官网为准。</span>
 </footer>
 
 <script type="module">
@@ -278,6 +327,18 @@ const I18N = {
     estTitle:'④ 计数与估算说明',
     estBody:'「精确」表示使用官方分词器逐 token 计算，结果与 OpenAI 官方完全一致；「≈」表示按各厂商分词器对中英文压缩率差异的经验系数换算，误差通常在 ±10%~20%。离线或分词库加载失败时自动退化为启发式估算（中文约 1 token/字、英文约 1.35 token/词）。各模型上下文与价格数据来自 LiteLLM 开源数据库并定时同步，为官方定价的近似，实际以各平台为准。',
     privacy:'🔒 隐私：纯前端本地计算，文本不会上传到任何服务器；模型价格数据为唯一的外部请求。',
+    heroTitle:'免费 Token 计数器 — 大模型 Token 计数 · 上下文窗口 · 成本对比',
+    heroSub:'用 OpenAI 官方分词器精确统计文本 Token，一屏对比 GPT-5、Claude、Gemini、DeepSeek、Qwen、GLM、Kimi、Grok 等 22+ 大模型的上下文窗口与 API 价格。全部在浏览器本地完成：免费、免注册、文本不上传。',
+    faqTitle:'⑤ 常见问题',
+    faqSub:'关于 Token 计数、精确度与隐私的常见问题。',
+    faq1q:'1000 个汉字是多少 token？',
+    faq1a:'取决于分词器：GPT-5 / GPT-4o 的 o200k 词表对中文约 0.9–1.1 token/字（1000 字约 900–1100 token），较老的 cl100k 词表约 1.4 token/字，DeepSeek、Qwen、GLM 等模型的中文压缩率更高（约 0.6–0.8 token/字）。把文本粘贴到上方即可得到各模型的精确/估算值。',
+    faq2q:'计数结果精确吗？',
+    faq2a:'OpenAI 系模型为官方 o200k / cl100k 分词器逐 token 计算，与官方完全一致；其他厂商（Claude、Gemini、DeepSeek 等）词表未公开，按经验系数估算，误差约 ±10%~20%，页面中以「估算」徽标标注。',
+    faq3q:'这个工具收费吗？文本安全吗？',
+    faq3a:'完全免费，无需注册。所有计数都在你的浏览器本地完成，文本不会上传到任何服务器；页面唯一的外部请求是拉取模型价格数据。',
+    faq4q:'支持哪些模型？数据多久更新？',
+    faq4a:'覆盖 OpenAI、Anthropic、Google、DeepSeek、阿里通义、智谱、月之暗面、xAI、Meta、Mistral 等 22+ 主流模型；上下文窗口与价格自动同步 LiteLLM 开源数据库（可手动刷新），断网时使用内置兜底数据。',
     dataSource:'数据来源：LiteLLM model_prices_and_context_window（开源 · 社区维护）· 分词：js-tiktoken（o200k / cl100k）',
     copyright:'TokenLens · 仅供参考，定价可能有滞后，实际费用以各厂商官网为准。',
     dsLive:'在线数据 · LiteLLM', dsCached:'缓存数据', dsBundled:'内置数据 · 离线', dsLoading:'正在同步最新模型数据…',
@@ -312,6 +373,18 @@ const I18N = {
     estTitle:'④ How counting & estimates work',
     estBody:'「Exact」= official tokenizer, identical to OpenAI\'s own count; 「≈」= converted with per-vendor empirical factors (±10–20% error). If offline, a heuristic is used (~1 token/CJK char, ~1.35 tokens/English word). Context and pricing data come from the open-source LiteLLM database; treat all prices as approximations — official vendor pages are authoritative.',
     privacy:'🔒 Privacy: runs 100% locally; your text is never uploaded. The only external request is the model pricing data.',
+    heroTitle:'Free Token Counter — LLM Token Counting, Context Windows & Cost Comparison',
+    heroSub:'Count tokens exactly with OpenAI\'s official tokenizer and compare context windows and API prices across GPT-5, Claude, Gemini, DeepSeek, Qwen, GLM, Kimi, Grok and 22+ models — all in your browser: free, no sign-up, your text never leaves your device.',
+    faqTitle:'⑤ FAQ',
+    faqSub:'Common questions about token counting, accuracy and privacy.',
+    faq1q:'How many tokens is 1000 Chinese characters?',
+    faq1a:'It depends on the tokenizer: GPT-5 / GPT-4o\'s o200k vocab encodes Chinese at roughly 0.9–1.1 tokens per character (≈900–1100 tokens per 1000 chars), the older cl100k needs about 1400, while DeepSeek, Qwen and GLM compress Chinese better (~0.6–0.8/char). Paste your text above for exact per-model numbers.',
+    faq2q:'Are the counts exact?',
+    faq2a:'OpenAI-family models are counted token-by-token with the official o200k / cl100k tokenizers, identical to OpenAI\'s own numbers. Other vendors (Claude, Gemini, DeepSeek…) don\'t publish their vocabs, so those numbers are empirical estimates (±10–20%), marked with the「Est.」badge.',
+    faq3q:'Is it free? Is my text safe?',
+    faq3a:'Completely free, no sign-up. All counting runs locally in your browser and your text is never uploaded — the only external request is fetching model pricing data.',
+    faq4q:'Which models are supported? How fresh is the data?',
+    faq4a:'22+ models from OpenAI, Anthropic, Google, DeepSeek, Alibaba Qwen, Z.ai GLM, Moonshot Kimi, xAI, Meta and Mistral. Context windows and prices sync automatically from the open-source LiteLLM database (manual refresh available); a built-in snapshot is used offline.',
     dataSource:'Data: LiteLLM model_prices_and_context_window (open source · community maintained) · Tokenizer: js-tiktoken (o200k / cl100k)',
     copyright:'TokenLens · For reference only; pricing may lag — check vendor pages for actual costs.',
     dsLive:'Live · LiteLLM', dsCached:'Cached data', dsBundled:'Built-in data · offline', dsLoading:'Syncing latest models…',
@@ -408,8 +481,12 @@ const MODELS = [
 ];
 
 /* ================= 状态 ================= */
+const urlLang = new URLSearchParams(location.search).get('lang');
+const browserLang = (navigator.language || '').toLowerCase();
 const state = {
-  lang: store.get('tl_lang') || 'zh',
+  // 优先级：URL ?lang= → 用户上次选择 → 浏览器语言（中文→zh，其余→en）
+  lang: urlLang === 'zh' || urlLang === 'en' ? urlLang
+      : store.get('tl_lang') || (browserLang.startsWith('zh') ? 'zh' : 'en'),
   theme: store.get('tl_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
   text: '',
   sort: 'ctx',
@@ -426,7 +503,7 @@ const state = {
 const t = k => I18N[state.lang][k] ?? k;
 function applyI18n(){
   document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
-  document.title = state.lang === 'zh' ? 'TokenLens · 大模型 Token 计数与成本对比' : 'TokenLens · LLM Token Counter, Context & Cost';
+  document.title = state.lang === 'zh' ? 'TokenLens — 免费 Token 计数器 & 大模型成本对比' : 'TokenLens — Free LLM Token Counter & Cost Comparison';
   document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
   $('#langBtn').textContent = state.lang === 'zh' ? 'EN' : '中文';
@@ -796,7 +873,14 @@ function bind(){
     const s = SAMPLE_TEXT;
     $('#textInput').value = s; state.text = s; renderAll();
   };
-  $('#langBtn').onclick = () => { state.lang = state.lang === 'zh' ? 'en' : 'zh'; store.set('tl_lang', state.lang); applyI18n(); };
+  $('#langBtn').onclick = () => {
+    state.lang = state.lang === 'zh' ? 'en' : 'zh';
+    store.set('tl_lang', state.lang);
+    const u = new URL(location.href);
+    if (state.lang === 'en') u.searchParams.set('lang', 'en'); else u.searchParams.delete('lang');
+    history.replaceState(null, '', u);
+    applyI18n();
+  };
   $('#themeBtn').onclick = () => {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
     store.set('tl_theme', state.theme);

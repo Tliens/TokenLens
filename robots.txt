@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tliens.github.io/TokenLens/sitemap.xml
