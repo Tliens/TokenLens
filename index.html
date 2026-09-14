@@ -550,10 +550,13 @@ const MODELS = [
 /* ================= 状态 ================= */
 const urlLang = new URLSearchParams(location.search).get('lang');
 const browserLang = (navigator.language || '').toLowerCase();
+/* 中国大陆时区（浏览器语言是英文但人在国内的情况也会被兜住） */
+const chinaTZ = ['Asia/Shanghai', 'Asia/Urumqi', 'Asia/Chongqing', 'Asia/Harbin', 'Asia/Kashgar']
+  .includes(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const state = {
-  // 优先级：URL ?lang= → 用户上次选择 → 浏览器语言（中文→zh，其余→en）
+  // 优先级：URL ?lang= → 用户上次选择 → 中国访问者（中文浏览器或国内时区）zh，其余 en
   lang: urlLang === 'zh' || urlLang === 'en' ? urlLang
-      : store.get('tl_lang') || (browserLang.startsWith('zh') ? 'zh' : 'en'),
+      : store.get('tl_lang') || (browserLang.startsWith('zh') || chinaTZ ? 'zh' : 'en'),
   theme: store.get('tl_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
   text: '',
   sort: 'ctx',
