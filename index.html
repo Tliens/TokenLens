@@ -1093,7 +1093,8 @@ function bind(){
   };
   let spyTick = false;
   const onScroll = () => {
-    if (!spyTick){ spyTick = true; requestAnimationFrame(() => { spy(); spyTick = false; }); }
+    /* 不用 rAF：部分内嵌 WebView 会冻结 rAF（即便可见），setTimeout 稳定 */
+    if (!spyTick){ spyTick = true; setTimeout(() => { spy(); spyTick = false; }, 50); }
   };
   /* capture 挂在 document 上：部分内嵌 WebView 程序化滚动不向 window 派发 scroll 事件 */
   document.addEventListener('scroll', onScroll, { capture: true, passive: true });
@@ -1103,18 +1104,19 @@ function bind(){
     const target = document.querySelector(a.getAttribute('href'));
     if (!target) return;
     const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - header.offsetHeight - 8);
-    /* 某些内嵌 WebView 对 behavior:'smooth' 直接忽略：120ms 后未移动则退化为 rAF 手动动画 */
+    /* 某些内嵌 WebView 对 behavior:'smooth' 直接忽略且冻结 rAF：
+       120ms 后未移动则退化为 setTimeout 步进动画 */
     const start = window.scrollY, dist = y - start, t0 = performance.now();
     let manual = false;
-    const animate = now => {
+    const animate = () => {
       manual = true;
-      const p = Math.min(1, (now - t0) / 500);
+      const p = Math.min(1, (performance.now() - t0) / 500);
       window.scrollTo(0, start + dist * (0.5 - Math.cos(Math.PI * p) / 2));
-      if (p < 1) requestAnimationFrame(animate); else spy();
+      if (p < 1) setTimeout(animate, 16); else spy();
     };
     window.scrollTo({ top: y, behavior: 'smooth' });
     setTimeout(() => {
-      if (!manual && Math.abs(window.scrollY - y) > 4 && Math.abs(window.scrollY - start) <= 4) requestAnimationFrame(animate);
+      if (!manual && Math.abs(window.scrollY - y) > 4 && Math.abs(window.scrollY - start) <= 4) animate();
       else spy();
     }, 120);
     history.replaceState(null, '', a.getAttribute('href'));
