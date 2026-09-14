@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenLens · 大模型 Token 计数与成本对比</title>
+<style>
+  :root{
+    --bg:#f5f6fa; --card:#ffffff; --card2:#fafbfe; --text:#191d2b; --muted:#68708a;
+    --border:#e5e8f0; --accent:#5b5ef0; --accent2:#8b5cf6; --good:#0e9f6e; --warn:#e02424;
+    --mark:#ef4444; --chip:#eef0f8; --shadow:0 1px 2px rgba(20,24,50,.05),0 8px 24px -12px rgba(20,24,50,.12);
+  }
+  [data-theme="dark"]{
+    --bg:#0e1016; --card:#161923; --card2:#1b1f2b; --text:#e8eaf2; --muted:#9aa1b8;
+    --border:#262b3a; --accent:#7b7ef5; --accent2:#a78bfa; --good:#34d399; --warn:#f87171;
+    --mark:#f87171; --chip:#222737; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  header{
+    position:sticky; top:0; z-index:50;
+    background:color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .header-in{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .brand{font-size:19px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+  .brand .logo{
+    width:30px;height:30px;border-radius:9px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:800;
+  }
+  .brand small{color:var(--muted);font-weight:500;font-size:12.5px;margin-left:2px}
+  .spacer{flex:1}
+  .status-chip{
+    display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);
+    background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:4px 12px;
+    max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+  .dot.live{background:var(--good)} .dot.cached{background:#f59e0b} .dot.loading{background:var(--accent);animation:pulse 1.2s infinite}
+  .dot.offline{background:var(--warn)} @keyframes pulse{50%{opacity:.35}}
+  .iconbtn{
+    border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:10px;
+    padding:6px 12px;font-size:13px;cursor:pointer;font-weight:600;transition:.15s;
+  }
+  .iconbtn:hover{border-color:var(--accent);color:var(--accent)}
+  main{max-width:1100px;margin:0 auto;padding:22px 20px 60px;display:flex;flex-direction:column;gap:18px}
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:20px 22px;box-shadow:var(--shadow);
+  }
+  h2{margin:0 0 4px;font-size:16.5px;font-weight:750;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+  textarea{
+    width:100%;min-height:150px;resize:vertical;border:1.5px solid var(--border);border-radius:12px;
+    background:var(--card2);color:var(--text);padding:13px 15px;font-size:14.5px;font-family:inherit;line-height:1.6;
+    outline:none;transition:border-color .15s;
+  }
+  textarea:focus{border-color:var(--accent)}
+  .tools{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .btn{
+    border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;
+    padding:6px 14px;font-size:13px;cursor:pointer;font-weight:600;transition:.15s;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff}
+  .btn.primary:hover{opacity:.9}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+  .stat{
+    background:var(--card2);border:1px solid var(--border);border-radius:13px;padding:13px 15px;position:relative;
+  }
+  .stat .v{font-size:25px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat.big .v{font-size:31px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .stat .k{font-size:12.5px;color:var(--muted);margin-top:2px;font-weight:600}
+  .badge{
+    position:absolute;top:10px;right:11px;font-size:10.5px;font-weight:700;border-radius:6px;padding:2px 7px;
+    background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good);
+  }
+  .badge.est{background:color-mix(in srgb,#f59e0b 16%,transparent);color:#d97706}
+  [data-theme="dark"] .badge.est{color:#fbbf24}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{
+    border:1px solid var(--border);background:var(--card2);color:var(--muted);border-radius:999px;
+    padding:3.5px 12px;font-size:12.5px;cursor:pointer;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px;
+  }
+  .chip .pdot{width:7px;height:7px;border-radius:50%}
+  .chip.on{background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:var(--accent);color:var(--accent)}
+  select,input[type=text].search{
+    border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;
+    padding:6px 11px;font-size:13px;outline:none;font-family:inherit;
+  }
+  input[type=text].search{width:170px}
+  input[type=text].search:focus,select:focus{border-color:var(--accent)}
+  /* chart */
+  .chart{display:flex;flex-direction:column;gap:7px}
+  .crow{display:grid;grid-template-columns:minmax(130px,190px) 1fr 74px;align-items:center;gap:10px}
+  .cname{font-size:13px;font-weight:650;display:flex;align-items:center;gap:7px;min-width:0}
+  .cname span.lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cname .pdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .ctrack{position:relative;height:15px;background:var(--chip);border-radius:5px;overflow:hidden}
+  .cfill{
+    position:absolute;left:0;top:0;bottom:0;border-radius:5px;
+    background:linear-gradient(90deg,color-mix(in srgb,var(--pc,#5b5ef0) 62%,transparent),var(--pc,#5b5ef0));
+    transition:width .35s ease;
+  }
+  .crow.over .cfill{background:var(--warn)}
+  .cmark{position:absolute;top:-2px;bottom:-2px;width:2.5px;background:var(--mark);border-radius:2px;box-shadow:0 0 0 1px color-mix(in srgb,var(--mark) 30%,transparent)}
+  .cval{font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;font-weight:650}
+  .cval.over{color:var(--warn);font-weight:750}
+  .legend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .legend i{display:inline-block;vertical-align:middle;margin-right:5px}
+  .legend .l1{width:12px;height:12px;border-radius:3px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 62%,transparent),var(--accent))}
+  .legend .l2{width:2.5px;height:13px;background:var(--mark);border-radius:2px}
+  /* table */
+  .tw{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{
+    text-align:right;color:var(--muted);font-size:12px;font-weight:700;padding:9px 10px;border-bottom:1.5px solid var(--border);
+    white-space:nowrap;
+  }
+  th:first-child,td:first-child{text-align:left}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--card2)}
+  .mname{font-weight:700;display:flex;align-items:center;gap:7px}
+  .mname .pdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .msub{color:var(--muted);font-size:11.5px;font-weight:500}
+  .tb{font-size:10.5px;font-weight:700;border-radius:6px;padding:2px 7px;margin-left:7px;vertical-align:1px}
+  .tb.exact{background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good)}
+  .tb.est{background:color-mix(in srgb,#f59e0b 16%,transparent);color:#d97706}
+  [data-theme="dark"] .tb.est{color:#fbbf24}
+  .over-td{color:var(--warn);font-weight:750}
+  .note{color:var(--muted);font-size:12.5px;margin:12px 0 0}
+  .foot{max-width:1100px;margin:0 auto;padding:0 20px 46px;color:var(--muted);font-size:12.5px;display:flex;flex-direction:column;gap:5px}
+  .foot a{color:var(--accent);text-decoration:none}
+  .empty{color:var(--muted);font-size:13px;padding:14px 4px}
+  @media (max-width:640px){
+    .crow{grid-template-columns:96px 1fr 62px}
+    .header-in{padding:12px 14px}
+    .card{padding:16px}
+    main{padding:16px 14px 40px}
+    .stat .v{font-size:21px}.stat.big .v{font-size:25px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-in">
+    <div class="brand"><div class="logo">T</div><span>TokenLens</span><small data-i18n="appSub"></small></div>
+    <div class="spacer"></div>
+    <span class="status-chip"><span class="dot" id="statusDot"></span><span id="statusText"></span></span>
+    <button class="iconbtn" id="refreshBtn" title="LiteLLM">↻</button>
+    <button class="iconbtn" id="langBtn">EN</button>
+    <button class="iconbtn" id="themeBtn">☾</button>
+  </div>
+</header>
+
+<main>
+  <!-- ① 输入 -->
+  <section class="card">
+    <h2 data-i18n="inputTitle"></h2>
+    <p class="sub" data-i18n="inputSub"></p>
+    <textarea id="textInput" data-i18n-ph="inputPh" spellcheck="false"></textarea>
+    <div class="tools">
+      <button class="btn" id="sampleBtn" data-i18n="sample"></button>
+      <button class="btn" id="pasteBtn" data-i18n="paste"></button>
+      <button class="btn" id="clearBtn" data-i18n="clear"></button>
+    </div>
+    <div class="stats">
+      <div class="stat big"><span class="badge" id="badgeO"></span><div class="v" id="stO">0</div><div class="k" data-i18n="statExact"></div></div>
+      <div class="stat"><span class="badge" id="badgeC"></span><div class="v" id="stC">0</div><div class="k" data-i18n="statCl"></div></div>
+      <div class="stat"><div class="v" id="stChars">0</div><div class="k" data-i18n="statChars"></div></div>
+      <div class="stat"><div class="v" id="stBytes">0</div><div class="k" data-i18n="statBytes"></div></div>
+      <div class="stat"><div class="v" id="stWords">0</div><div class="k" data-i18n="statWords"></div></div>
+      <div class="stat"><div class="v" id="stCjk">0</div><div class="k" data-i18n="statCjk"></div></div>
+    </div>
+    <p class="note" data-i18n="exactNote"></p>
+  </section>
+
+  <!-- ② 上下文窗口对比 -->
+  <section class="card">
+    <h2 data-i18n="chartTitle"></h2>
+    <p class="sub" data-i18n="chartSub"></p>
+    <div class="controls">
+      <div class="chips" id="providerChips"></div>
+      <input type="text" class="search" id="searchBox" data-i18n-ph="searchPh">
+      <select id="sortSel">
+        <option value="ctx" data-i18n="sortCtx"></option>
+        <option value="in" data-i18n="sortIn"></option>
+        <option value="cost" data-i18n="sortCost"></option>
+        <option value="name" data-i18n="sortName"></option>
+      </select>
+      <select id="scaleSel">
+        <option value="linear" data-i18n="scaleLinear"></option>
+        <option value="log" data-i18n="scaleLog"></option>
+      </select>
+    </div>
+    <div class="chart" id="chart"></div>
+    <div class="legend">
+      <span><i class="l1"></i><span data-i18n="legendCtx"></span></span>
+      <span><i class="l2"></i><span data-i18n="legendMark"></span></span>
+    </div>
+  </section>
+
+  <!-- ③ 费用对比 -->
+  <section class="card">
+    <h2 data-i18n="tableTitle"></h2>
+    <p class="sub" data-i18n="tableSub"></p>
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th data-i18n="colModel"></th>
+          <th data-i18n="colCtx"></th>
+          <th data-i18n="colTok"></th>
+          <th data-i18n="colCost"></th>
+          <th data-i18n="colIn"></th>
+          <th data-i18n="colOut"></th>
+          <th data-i18n="colFits"></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="note" data-i18n="tableNote"></p>
+  </section>
+
+  <!-- ④ 说明 -->
+  <section class="card">
+    <h2 data-i18n="estTitle"></h2>
+    <p class="sub" style="margin-bottom:8px" data-i18n="estBody"></p>
+    <p class="note" data-i18n="privacy"></p>
+  </section>
+</main>
+
+<footer class="foot">
+  <span data-i18n="dataSource"></span>
+  <span data-i18n="copyright"></span>
+</footer>
+
+<script type="module">
+/* ================= 基础工具 ================= */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+
+/* ================= 多语言 ================= */
+const I18N = {
+  zh: {
+    appSub:'大模型 Token 计数 · 上下文 · 成本对比',
+    inputTitle:'① 粘贴你的文本',
+    inputSub:'所有计数均在浏览器本地完成，文本不会离开你的设备。',
+    inputPh:'在此粘贴或输入文本……支持中英混排。',
+    sample:'填入示例', paste:'粘贴', clear:'清空',
+    statExact:'精确 Token 数（o200k）', statCl:'cl100k 参考值',
+    statChars:'字符数', statBytes:'UTF-8 字节', statWords:'英文词数', statCjk:'中文字符数',
+    exact:'精确', est:'估算',
+    exactNote:'「精确」= OpenAI 官方分词器逐 token 计算（GPT-5 / GPT-4o 同款词表）；「估算」= 离线时的启发式近似。',
+    chartTitle:'② 各模型上下文窗口对比',
+    chartSub:'按厂商筛选、搜索或排序；柱上的红色刻度表示你的文本在上下文中的占用位置。',
+    all:'全部', searchPh:'搜索模型…',
+    sortCtx:'上下文窗口（大→小）', sortIn:'输入单价（低→高）', sortCost:'本次费用（低→高）', sortName:'按名称',
+    scaleLinear:'线性刻度', scaleLog:'对数刻度',
+    legendCtx:'模型上下文窗口', legendMark:'你的文本位置',
+    tableTitle:'③ 模型费用与容量对比',
+    tableSub:'「本次输入费用」= 把你粘贴的整段文本作为一次输入发送的花费（不含输出）。',
+    colModel:'模型', colCtx:'上下文窗口', colTok:'预估 Tokens', colCost:'本次输入费用',
+    colIn:'输入 $/1M', colOut:'输出 $/1M', colFits:'可容纳份数',
+    tableNote:'价格为美元 / 每百万 token；「精确」徽标表示该行 token 数为官方分词器精确值，其他厂商为估算换算。',
+    fits:'份', overCtx:'超出上下文',
+    estTitle:'④ 计数与估算说明',
+    estBody:'「精确」表示使用官方分词器逐 token 计算，结果与 OpenAI 官方完全一致；「≈」表示按各厂商分词器对中英文压缩率差异的经验系数换算，误差通常在 ±10%~20%。离线或分词库加载失败时自动退化为启发式估算（中文约 1 token/字、英文约 1.35 token/词）。各模型上下文与价格数据来自 LiteLLM 开源数据库并定时同步，为官方定价的近似，实际以各平台为准。',
+    privacy:'🔒 隐私：纯前端本地计算，文本不会上传到任何服务器；模型价格数据为唯一的外部请求。',
+    dataSource:'数据来源：LiteLLM model_prices_and_context_window（开源 · 社区维护）· 分词：js-tiktoken（o200k / cl100k）',
+    copyright:'TokenLens · 仅供参考，定价可能有滞后，实际费用以各厂商官网为准。',
+    dsLive:'在线数据 · LiteLLM', dsCached:'缓存数据', dsBundled:'内置数据 · 离线', dsLoading:'正在同步最新模型数据…',
+    updated:'更新于 ', refreshTitle:'重新拉取最新模型与价格',
+    tokLoading:'分词库加载中…', tokOffline:'离线估算',
+    textOver:'文本超出该模型上下文', yourText:'你的文本',
+    tooltipMark:'你的文本 ≈ {n} tokens，占上下文 {p}%',
+    emptyModels:'没有匹配的模型',
+  },
+  en: {
+    appSub:'LLM Token Counter · Context · Cost',
+    inputTitle:'① Paste your text',
+    inputSub:'All counting happens locally in your browser — your text never leaves this device.',
+    inputPh:'Paste or type your text here… mixed Chinese & English supported.',
+    sample:'Sample', paste:'Paste', clear:'Clear',
+    statExact:'Exact tokens (o200k)', statCl:'cl100k reference',
+    statChars:'Characters', statBytes:'UTF-8 bytes', statWords:'English words', statCjk:'CJK chars',
+    exact:'Exact', est:'Est.',
+    exactNote:'「Exact」= token-by-token count with OpenAI\'s official tokenizer (same vocab as GPT-5 / GPT-4o); 「Est.」= heuristic fallback when offline.',
+    chartTitle:'② Context window comparison',
+    chartSub:'Filter by provider, search or sort; the red tick on each bar marks where your text lands in the context window.',
+    all:'All', searchPh:'Search models…',
+    sortCtx:'Context window (high→low)', sortIn:'Input price (low→high)', sortCost:'Cost of this text (low→high)', sortName:'By name',
+    scaleLinear:'Linear scale', scaleLog:'Log scale',
+    legendCtx:'Model context window', legendMark:'Your text position',
+    tableTitle:'③ Cost & capacity comparison',
+    tableSub:'「Cost of this text」= price of sending your entire pasted text as one input (output not included).',
+    colModel:'Model', colCtx:'Context', colTok:'Est. tokens', colCost:'Cost of this text',
+    colIn:'Input $/1M', colOut:'Output $/1M', colFits:'Copies that fit',
+    tableNote:'Prices in USD per 1M tokens; the「Exact」badge marks rows counted with the official tokenizer — others are estimates.',
+    fits:'×', overCtx:'Over context',
+    estTitle:'④ How counting & estimates work',
+    estBody:'「Exact」= official tokenizer, identical to OpenAI\'s own count; 「≈」= converted with per-vendor empirical factors (±10–20% error). If offline, a heuristic is used (~1 token/CJK char, ~1.35 tokens/English word). Context and pricing data come from the open-source LiteLLM database; treat all prices as approximations — official vendor pages are authoritative.',
+    privacy:'🔒 Privacy: runs 100% locally; your text is never uploaded. The only external request is the model pricing data.',
+    dataSource:'Data: LiteLLM model_prices_and_context_window (open source · community maintained) · Tokenizer: js-tiktoken (o200k / cl100k)',
+    copyright:'TokenLens · For reference only; pricing may lag — check vendor pages for actual costs.',
+    dsLive:'Live · LiteLLM', dsCached:'Cached data', dsBundled:'Built-in data · offline', dsLoading:'Syncing latest models…',
+    updated:'updated ', refreshTitle:'Re-fetch latest models & prices',
+    tokLoading:'Loading tokenizer…', tokOffline:'Offline estimate',
+    textOver:'Text exceeds this model\'s context', yourText:'Your text',
+    tooltipMark:'Your text ≈ {n} tokens = {p}% of context',
+    emptyModels:'No matching models',
+  }
+};
+
+/* ================= 厂商 ================= */
+const PROVIDERS = {
+  openai:   {zh:'OpenAI', en:'OpenAI', color:'#10a37f'},
+  anthropic:{zh:'Anthropic', en:'Anthropic', color:'#d97757'},
+  google:   {zh:'谷歌 Gemini', en:'Google', color:'#4285f4'},
+  deepseek: {zh:'深度求索', en:'DeepSeek', color:'#4d6bfe'},
+  alibaba:  {zh:'阿里通义', en:'Alibaba Qwen', color:'#ff6a00'},
+  zai:      {zh:'智谱 Z.ai', en:'Z.ai (GLM)', color:'#3859ff'},
+  moonshot: {zh:'月之暗面', en:'Moonshot', color:'#16b0a1'},
+  xai:      {zh:'xAI', en:'xAI', color:'#6b7280'},
+  meta:     {zh:'Meta', en:'Meta', color:'#0866ff'},
+  mistral:  {zh:'Mistral', en:'Mistral', color:'#fa500f'},
+};
+
+/* ================= 模型清单 =================
+   mult: 相对 o200k 精确值的估算系数（OpenAI=1 表示精确）
+   re:   LiteLLM 数据库键名匹配规则（按序尝试，自动选最新版本）
+   fb:   内置兜底（离线可用） */
+const MODELS = [
+  {id:'gpt5',     provider:'openai',   mult:1.00, baseName:'GPT-5 (latest)',
+   re:[/^gpt-5(\d+(?:\.\d+)?)?$/],
+   fb:{ctx:272000, out:128000, pin:1.25, pout:10}},
+  {id:'gpt5mini', provider:'openai',   mult:1.00, baseName:'GPT-5 mini',
+   re:[/^gpt-5(\d+(?:\.\d+)?)?-mini$/],
+   fb:{ctx:272000, out:128000, pin:0.25, pout:2}},
+  {id:'gpt5nano', provider:'openai',   mult:1.00, baseName:'GPT-5 nano',
+   re:[/^gpt-5(\d+(?:\.\d+)?)?-nano$/],
+   fb:{ctx:272000, out:128000, pin:0.05, pout:0.4}},
+  {id:'gpt41',    provider:'openai',   mult:1.00, baseName:'GPT-4.1',
+   re:[/^gpt-4\.1$/], fb:{ctx:1047576, out:32768, pin:2, pout:8}},
+  {id:'gpt4o',    provider:'openai',   mult:1.00, baseName:'GPT-4o',
+   re:[/^gpt-4o$/], fb:{ctx:128000, out:16384, pin:2.5, pout:10}},
+  {id:'o4mini',   provider:'openai',   mult:1.00, baseName:'o4-mini',
+   re:[/^o4-mini$/], fb:{ctx:200000, out:100000, pin:1.1, pout:4.4}},
+  {id:'opus',     provider:'anthropic',mult:1.00, baseName:'Claude Opus (latest)',
+   re:[/^claude-opus-(\d+(?:-\d+)?)$/],
+   fb:{ctx:1000000, out:128000, pin:5, pout:25}},
+  {id:'sonnet',   provider:'anthropic',mult:1.00, baseName:'Claude Sonnet (latest)',
+   re:[/^claude-sonnet-(\d+(?:-\d+)?)$/],
+   fb:{ctx:1000000, out:128000, pin:2, pout:10}},
+  {id:'haiku',    provider:'anthropic',mult:1.00, baseName:'Claude Haiku (latest)',
+   re:[/^claude-haiku-(\d+(?:-\d+)?)$/],
+   fb:{ctx:200000, out:64000, pin:1, pout:5}},
+  {id:'gempro',   provider:'google',   mult:0.95, baseName:'Gemini Pro (latest)',
+   re:[/^(?:gemini\/)?gemini-(\d+(?:\.\d+)?)-pro$/, /^vertex_ai\/gemini-(\d+(?:\.\d+)?)-pro$/],
+   fb:{ctx:1048576, out:65535, pin:1.25, pout:10}},
+  {id:'gemflash', provider:'google',   mult:0.95, baseName:'Gemini Flash (latest)',
+   re:[/^(?:gemini\/)?gemini-(\d+(?:\.\d+)?)-flash$/],
+   fb:{ctx:1048576, out:65536, pin:0.75, pout:3.75}},
+  {id:'dschat',   provider:'deepseek', mult:0.80, baseName:'DeepSeek Chat',
+   re:[/^deepseek\/deepseek-chat$/, /^deepseek\/deepseek-v3(\.\d+)?$/],
+   fb:{ctx:131072, out:8192, pin:0.28, pout:0.42}},
+  {id:'dsreason', provider:'deepseek', mult:0.80, baseName:'DeepSeek Reasoner',
+   re:[/^deepseek\/deepseek-reasoner$/, /^deepseek\/deepseek-v(\d+[\d.]*)-pro$/],
+   fb:{ctx:131072, out:65536, pin:0.28, pout:0.42}},
+  {id:'qwenmax',  provider:'alibaba',  mult:0.80, baseName:'Qwen Max (latest)',
+   re:[/^(?:qwencloud|dashscope)\/qwen(\d+(?:\.\d+)?)?-max$/],
+   fb:{ctx:991808, out:131072, pin:2, pout:6}},
+  {id:'qwenplus', provider:'alibaba',  mult:0.80, baseName:'Qwen Plus (latest)',
+   re:[/^(?:qwencloud|dashscope)\/qwen(\d+(?:\.\d+)?)-plus$/],
+   fb:{ctx:991808, out:65536, pin:0.4, pout:1.2}},
+  {id:'glm',      provider:'zai',      mult:0.80, baseName:'GLM (latest)',
+   re:[/^zai\/glm-(\d+(?:\.\d+)?)$/],
+   fb:{ctx:1000000, out:128000, pin:1.4, pout:4.4}},
+  {id:'glmflash', provider:'zai',      mult:0.80, baseName:'GLM Flash',
+   re:[/^zai\/glm-(\d+(?:\.\d+)?)-flash$/],
+   fb:{ctx:1048576, out:128000, pin:0.15, pout:0.5}},
+  {id:'kimi',     provider:'moonshot', mult:0.90, baseName:'Kimi K (latest)',
+   re:[/^moonshot\/kimi-k(\d+(?:\.\d+)?)$/],
+   fb:{ctx:1048576, out:1048576, pin:3, pout:15}},
+  {id:'grok',     provider:'xai',      mult:1.00, baseName:'Grok (latest)',
+   re:[/^xai\/grok-(\d+(?:\.\d+)?)$/],
+   fb:{ctx:1000000, out:1000000, pin:1.25, pout:2.5}},
+  {id:'llamamav', provider:'meta',     mult:1.25, baseName:'Llama 4 Maverick',
+   re:[/^meta_llama\/Llama-4-Maverick/, /^together_ai\/meta-llama\/Llama-4-Maverick/],
+   fb:{ctx:1000000, out:4028, pin:0.27, pout:0.85}},
+  {id:'llamascout',provider:'meta',    mult:1.25, baseName:'Llama 4 Scout',
+   re:[/^meta_llama\/Llama-4-Scout/, /^together_ai\/meta-llama\/Llama-4-Scout/],
+   fb:{ctx:10000000, out:4028, pin:0.15, pout:0.6}},
+  {id:'mistral',  provider:'mistral',  mult:1.00, baseName:'Mistral Large (latest)',
+   re:[/^mistral\/mistral-large-latest$/, /^mistral\/mistral-large-\d+$/],
+   fb:{ctx:262144, out:262144, pin:0.5, pout:1.5}},
+];
+
+/* ================= 状态 ================= */
+const state = {
+  lang: store.get('tl_lang') || 'zh',
+  theme: store.get('tl_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+  text: '',
+  sort: 'ctx',
+  provider: 'all',
+  scale: 'linear',
+  search: '',
+  encO: null, encC: null,      // o200k / cl100k 编码器
+  tokMode: 'loading',          // loading | exact | offline
+  dataSource: 'loading',       // loading | live | cached | bundled
+  liveTime: Number(store.get('tl_live_time')) || null,
+};
+
+/* ================= i18n 应用 ================= */
+const t = k => I18N[state.lang][k] ?? k;
+function applyI18n(){
+  document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = state.lang === 'zh' ? 'TokenLens · 大模型 Token 计数与成本对比' : 'TokenLens · LLM Token Counter, Context & Cost';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  $('#langBtn').textContent = state.lang === 'zh' ? 'EN' : '中文';
+  $('#refreshBtn').title = t('refreshTitle');
+  renderAll();
+}
+
+/* ================= 分词器加载 ================= */
+const TOK_BASE = [
+  'https://cdn.jsdelivr.net/npm/js-tiktoken@1.0.21/dist/',
+  'https://esm.sh/js-tiktoken@1.0.21/dist/',
+];
+async function importFirst(paths){
+  let err;
+  for (const p of paths){
+    try { return await import(/* @vite-ignore */ p); }
+    catch(e){ err = e; }
+  }
+  throw err;
+}
+async function initTokenizer(){
+  try{
+    const [lite, o200k] = await Promise.all([
+      importFirst(TOK_BASE.map(b => b + 'lite.js')),
+      importFirst(TOK_BASE.map(b => b + 'ranks/o200k_base.js')),
+    ]);
+    state.encO = new lite.Tiktoken(o200k.default);
+    state.tokMode = 'exact';
+    recompute();
+    // cl100k 后台加载（失败不影响主功能）
+    try{
+      const [lite2, cl100k] = await Promise.all([
+        importFirst(TOK_BASE.map(b => b + 'lite.js')),
+        importFirst(TOK_BASE.map(b => b + 'ranks/cl100k_base.js')),
+      ]);
+      state.encC = new lite2.Tiktoken(cl100k.default);
+      recompute();
+    }catch(e){}
+  }catch(e){
+    state.tokMode = 'offline';
+    recompute();
+  }
+}
+
+/* 启发式估算（分词库不可用时的兜底） */
+function heuristicTokens(text){
+  const cjk = (text.match(/[\u3000-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g) || []).length;
+  const wordChars = (text.match(/[A-Za-z0-9]+(?:['’\-][A-Za-z0-9]+)*/g) || []).reduce((a,w)=>a+w.length,0);
+  const words = (text.match(/[A-Za-z0-9]+(?:['’\-][A-Za-z0-9]+)*/g) || []).length;
+  const other = text.length - cjk - wordChars;
+  return Math.max(text.trim() ? 1 : 0, Math.round(cjk * 1.0 + words * 1.35 + other * 0.6));
+}
+function countExact(text){
+  // 超长文本（>30万字符）跳过精确分词，避免长时间阻塞主线程，改用启发式估算
+  if (!state.encO || text.length > 300000) return null;
+  return state.encO.encode(text).length;
+}
+function countCl100k(text){
+  if (state.encC && text.length <= 300000) return state.encC.encode(text).length;
+  const o = countExact(text);
+  return o == null ? null : Math.round(o * 1.06); // 近似换算
+}
+
+/* ================= LiteLLM 在线数据 ================= */
+const LITELLM_URL = 'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json';
+const CACHE_KEY = 'tokenlens_cache_v1';
+
+function vt(s){ return String(s).split(/[.\-]/).map(Number); }
+function pickEntry(db, patterns){
+  let best = null, bestScore = null;
+  for (const re of patterns){
+    for (const k of Object.keys(db)){
+      const e = db[k];
+      if (!e || typeof e !== 'object' || e.mode !== 'chat') continue;
+      const m = k.match(re);
+      if (!m) continue;
+      const v = m[1] ? vt(m[1]) : [0];
+      // 优先有价格的条目，其次最新版本号
+      const score = [e.input_cost_per_token != null ? 1 : 0, v];
+      if (bestScore === null || cmpScore(score, bestScore) > 0){ best = e; bestScore = score; best.key = k; }
+    }
+  }
+  return best;
+}
+function cmpScore(a, b){ return a[0] - b[0] || cmpArr(a[1], b[1]); }
+function cmpArr(a, b){
+  for (let i = 0; i < Math.max(a.length, b.length); i++){
+    const d = (a[i]||0) - (b[i]||0);
+    if (d) return d;
+  }
+  return 0;
+}
+const capSeg = s => (/^[\dA-Z]/.test(s) ? s : s[0].toUpperCase() + s.slice(1));
+function prettyName(key, fbName){
+  let s = key.replace(/^(?:gemini|zai|moonshot|dashscope|qwencloud|deepseek|mistral|xai|meta_llama|anthropic|openai|together_ai|vertex_ai|groq|azure|bedrock|fireworks_ai|perplexity|nscale|nebius|novita|deepinfra|lambda_ai)\/(?=[A-Za-z])/i, '');
+  s = s.replace(/-FP8$/i, '').replace(/_/g, ' ');
+  let m;
+  if (m = s.match(/^claude-(\w+?)-(\d+(?:-\d+)?)/)) return 'Claude ' + m[1][0].toUpperCase() + m[1].slice(1) + ' ' + m[2].replace(/-/g, '.');
+  if (m = s.match(/^gemini-(.+)$/))                return 'Gemini ' + m[1].split('-').map(capSeg).join(' ');
+  if (m = s.match(/^gpt-(.+)$/))                   return 'GPT-' + m[1].split('-').map(capSeg).join(' ');
+  if (m = s.match(/^glm-(.+)$/)){
+    const [ver, ...rest] = m[1].split('-');
+    return 'GLM-' + ver + (rest.length ? ' ' + rest.map(capSeg).join(' ') : '');
+  }
+  if (m = s.match(/^grok-(.+)$/))                  return 'Grok ' + m[1].split('-').map(capSeg).join(' ');
+  if (m = s.match(/^kimi-k(.+)$/))                 return 'Kimi K' + m[1].split('-').map(capSeg).join(' ');
+  if (m = s.match(/^qwen(\d*(?:\.\d+)*)-(.+)$/))   return 'Qwen' + m[1] + ' ' + m[2].split('-').map(capSeg).join(' ');
+  if (m = s.match(/^deepseek-(.+)$/))              return 'DeepSeek ' + m[1].split('-').map(capSeg).join(' ');
+  if (m = s.match(/Llama-4-(Maverick|Scout)/i))    return 'Llama 4 ' + m[1];
+  if (m = s.match(/^mistral-large(.*)$/)){
+    const tail = m[1].replace(/^-/, '').split('-').filter(x => x && x !== 'latest').map(capSeg).join(' ');
+    return 'Mistral Large' + (tail ? ' ' + tail : '');
+  }
+  if (/^o\d/i.test(s))                             return s.toLowerCase();
+  return fbName || s;
+}
+function applyLive(entry, model){
+  model.live = {
+    key: entry.key,
+    ctx: entry.max_input_tokens ?? entry.max_tokens ?? null,
+    out: entry.max_output_tokens ?? entry.max_tokens ?? null,
+    pin: entry.input_cost_per_token != null ? entry.input_cost_per_token * 1e6 : null,
+    pout: entry.output_cost_per_token != null ? entry.output_cost_per_token * 1e6 : null,
+  };
+  model.name = prettyName(entry.key, model.baseName);
+}
+function resolveAll(db){
+  for (const m of MODELS){
+    const e = pickEntry(db, m.re);
+    if (e) applyLive(e, m);
+  }
+}
+function saveCache(){
+  const data = {};
+  for (const m of MODELS) if (m.live) data[m.id] = m.live;
+  store.set(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+  store.set('tl_live_time', String(Date.now()));
+}
+function loadCache(){
+  try{
+    const c = JSON.parse(store.get(CACHE_KEY) || 'null');
+    if (!c || !c.data) return null;
+    for (const m of MODELS) if (c.data[m.id]) m.live = c.data[m.id];
+    return c;
+  }catch(e){ return null; }
+}
+async function loadLiveData(){
+  setStatus('loading');
+  try{
+    const res = await fetch(LITELLM_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const db = await res.json();
+    resolveAll(db);
+    saveCache();
+    state.liveTime = Date.now();
+    state.dataSource = 'live';
+  }catch(e){
+    const c = loadCache();
+    if (c){ state.liveTime = c.ts; state.dataSource = 'cached'; }
+    else state.dataSource = 'bundled';
+  }
+  setStatus(state.dataSource);
+  renderAll();
+}
+function setStatus(s){
+  const dot = $('#statusDot'), txt = $('#statusText');
+  dot.className = 'dot ' + (s === 'live' ? 'live' : s === 'cached' ? 'cached' : s === 'loading' ? 'loading' : 'offline');
+  const time = state.liveTime ? ' · ' + t('updated') + new Date(state.liveTime).toLocaleString(state.lang === 'zh' ? 'zh-CN' : 'en-US', { hour12: false }) : '';
+  txt.textContent = (s === 'live' ? t('dsLive') : s === 'cached' ? t('dsCached') : s === 'loading' ? t('dsLoading') : t('dsBundled')) + time;
+}
+
+/* ================= 模型行数据（合并 兜底/在线 + 估算 tokens） ================= */
+function currentStats(){
+  const text = state.text;
+  const exact = countExact(text);
+  const fallback = exact != null ? exact : (text.trim() ? heuristicTokens(text) : 0);
+  return { exact, base: fallback, usedExact: exact != null };
+}
+function modelRows(){
+  const { base, usedExact } = currentStats();
+  const rows = MODELS.map(m => {
+    // 在线数据逐字段合并，缺失字段回退到内置兜底
+    const d = { ...m.fb };
+    if (m.live) for (const [k, v] of Object.entries(m.live)) if (v != null) d[k] = v;
+    const est = Math.round(base * m.mult);
+    const exact = m.mult === 1 && usedExact;
+    const cost = d.pin != null ? est * d.pin / 1e6 : null;
+    const fits = est > 0 && d.ctx ? Math.floor(d.ctx / est) : null;
+    return { ...m, name: m.name || m.baseName, ctx: d.ctx ?? null, out: d.out ?? null, pin: d.pin ?? null, pout: d.pout ?? null, est, exact, cost, fits };
+  });
+  const q = state.search.trim().toLowerCase();
+  const filtered = rows.filter(r =>
+    (state.provider === 'all' || r.provider === state.provider) &&
+    (!q || r.name.toLowerCase().includes(q) || (r.live?.key || '').toLowerCase().includes(q) || r.baseName.toLowerCase().includes(q))
+  );
+  const by = {
+    ctx:  (a, b) => b.ctx - a.ctx,
+    in:   (a, b) => (a.pin ?? 1e12) - (b.pin ?? 1e12),
+    cost: (a, b) => (a.cost ?? 1e12) - (b.cost ?? 1e12),
+    name: (a, b) => a.name.localeCompare(b.name),
+  }[state.sort];
+  return filtered.sort(by);
+}
+
+/* ================= 格式化 ================= */
+function nf(){ return new Intl.NumberFormat(state.lang === 'zh' ? 'zh-CN' : 'en-US'); }
+function fmtInt(n){ return n == null ? '—' : nf().format(n); }
+function fmtCtx(n){
+  if (n == null) return '—';
+  if (n >= 1e6) return (Math.round(n / 1e4) / 100) + 'M';
+  if (n >= 1e3) return Math.round(n / 1e3) + 'K';
+  return String(n);
+}
+function fmtMoney(v){
+  if (v == null) return '—';
+  if (v === 0) return '$0';
+  if (v < 0.01) return '$' + v.toPrecision(2);
+  if (v < 1) return '$' + v.toFixed(3);
+  return '$' + v.toFixed(2);
+}
+function fmtPrice(v){
+  if (v == null) return '—';
+  if (v < 1) return '$' + (Math.round(v * 1000) / 1000);
+  return '$' + (Math.round(v * 100) / 100);
+}
+function barWidth(ctx){
+  if (!ctx) return 0;
+  const rows = modelRows();
+  const max = Math.max(...rows.map(r => r.ctx || 0), 1);
+  if (state.scale === 'log') return Math.max(1.5, Math.log(ctx + 1) / Math.log(max + 1) * 100);
+  return Math.max(0.8, ctx / max * 100);
+}
+
+/* ================= 渲染 ================= */
+function el(tag, cls, text){
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function renderStats(){
+  const text = state.text;
+  const { exact, usedExact } = currentStats();
+  const cl = countCl100k(text);
+  $('#stO').textContent = fmtInt(exact != null ? exact : (text.trim() ? heuristicTokens(text) : 0));
+  $('#stC').textContent = fmtInt(cl != null ? cl : (text.trim() ? heuristicTokens(text) : 0));
+  $('#stChars').textContent = fmtInt(text.length);
+  $('#stBytes').textContent = fmtInt(new TextEncoder().encode(text).length);
+  $('#stWords').textContent = fmtInt((text.match(/[A-Za-z0-9]+(?:['’\-][A-Za-z0-9]+)*/g) || []).length);
+  $('#stCjk').textContent = fmtInt((text.match(/[\u3000-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g) || []).length);
+  const bO = $('#badgeO'), bC = $('#badgeC');
+  bO.textContent = state.tokMode === 'loading' ? t('tokLoading') : (usedExact ? t('exact') : t('est'));
+  bO.className = 'badge' + (usedExact ? '' : ' est');
+  bC.textContent = state.encC && usedExact ? t('exact') : t('est');
+  bC.className = 'badge' + (state.encC && usedExact ? '' : ' est');
+}
+function renderChips(){
+  const box = $('#providerChips');
+  box.replaceChildren();
+  const mk = (id, label, color) => {
+    const c = el('button', 'chip' + (state.provider === id ? ' on' : ''));
+    if (color){ const d = el('span', 'pdot'); d.style.background = color; c.appendChild(d); }
+    c.appendChild(el('span', null, label));
+    c.onclick = () => { state.provider = state.provider === id ? 'all' : id; renderAll(); };
+    return c;
+  };
+  box.appendChild(mk('all', t('all'), null));
+  for (const [id, p] of Object.entries(PROVIDERS))
+    if (MODELS.some(m => m.provider === id)) box.appendChild(mk(id, p[state.lang] || p.en, p.color));
+}
+function renderChart(){
+  const rows = modelRows();
+  const box = $('#chart');
+  box.replaceChildren();
+  if (!rows.length){ box.appendChild(el('div', 'empty', t('emptyModels'))); return; }
+  const textTok = currentStats().base;
+  for (const r of rows){
+    const row = el('div', 'crow' + (textTok > r.ctx ? ' over' : ''));
+    const name = el('div', 'cname');
+    const dot = el('span', 'pdot'); dot.style.background = PROVIDERS[r.provider].color;
+    name.appendChild(dot);
+    name.appendChild(el('span', 'lbl', r.name));
+    name.title = (r.live?.key ? 'LiteLLM: ' + r.live.key : 'built-in data');
+    row.appendChild(name);
+    const track = el('div', 'ctrack');
+    track.style.setProperty('--pc', PROVIDERS[r.provider].color);
+    const fill = el('div', 'cfill');
+    fill.style.width = barWidth(r.ctx) + '%';
+    track.appendChild(fill);
+    if (textTok > 0 && r.ctx > 0){
+      const pct = Math.min(100, textTok / r.ctx * 100);
+      const mark = el('div', 'cmark');
+      mark.style.left = `calc(${pct}% - 1px)`;
+      mark.title = t('tooltipMark').replace('{n}', fmtInt(textTok)).replace('{p}', pct < 0.01 ? '<0.01' : pct.toFixed(pct < 1 ? 2 : 1));
+      track.appendChild(mark);
+    }
+    track.title = fmtCtx(r.ctx) + ' tokens';
+    row.appendChild(track);
+    const val = el('div', 'cval' + (textTok > r.ctx ? ' over' : ''), fmtCtx(r.ctx));
+    val.title = fmtInt(r.ctx);
+    row.appendChild(val);
+    box.appendChild(row);
+  }
+}
+function renderTable(){
+  const rows = modelRows();
+  const tb = $('#tbody');
+  tb.replaceChildren();
+  if (!rows.length){ const tr = el('tr'); tr.appendChild(el('td', 'empty', t('emptyModels'))); tb.appendChild(tr); return; }
+  const textTok = currentStats().base;
+  for (const r of rows){
+    const tr = el('tr');
+    if (textTok > r.ctx) tr.title = t('textOver');
+    // 模型
+    const tdM = el('td');
+    const nm = el('div', 'mname');
+    const dot = el('span', 'pdot'); dot.style.background = PROVIDERS[r.provider].color;
+    nm.appendChild(dot);
+    nm.appendChild(el('span', null, r.name));
+    tdM.appendChild(nm);
+    tdM.appendChild(el('div', 'msub', PROVIDERS[r.provider][state.lang] || PROVIDERS[r.provider].en));
+    tr.appendChild(tdM);
+    // 上下文
+    tr.appendChild(el('td', null, fmtCtx(r.ctx)));
+    // 预估 tokens
+    const tdT = el('td');
+    tdT.appendChild(el('span', null, fmtInt(r.est)));
+    const b = el('span', 'tb ' + (r.exact ? 'exact' : 'est'), r.exact ? t('exact') : t('est'));
+    tdT.appendChild(b);
+    tr.appendChild(tdT);
+    // 本次费用
+    tr.appendChild(el('td', textTok > r.ctx ? 'over-td' : null, textTok > r.ctx ? t('overCtx') : fmtMoney(r.cost)));
+    // 单价
+    tr.appendChild(el('td', null, fmtPrice(r.pin)));
+    tr.appendChild(el('td', null, fmtPrice(r.pout)));
+    // 可容纳
+    tr.appendChild(el('td', null, r.fits != null ? nf().format(r.fits) + t('fits') : '—'));
+    tb.appendChild(tr);
+  }
+}
+function renderAll(){
+  renderStats();
+  renderChips();
+  renderChart();
+  renderTable();
+  setStatus(state.dataSource);
+}
+
+/* ================= 事件 ================= */
+let debounceTimer;
+function recompute(){
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(renderAll, 120);
+}
+function bind(){
+  $('#textInput').addEventListener('input', e => { state.text = e.target.value; recompute(); });
+  $('#clearBtn').onclick = () => { $('#textInput').value = ''; state.text = ''; recompute(); };
+  $('#pasteBtn').onclick = async () => {
+    try{
+      const txt = await navigator.clipboard.readText();
+      $('#textInput').value = txt; state.text = txt; renderAll();
+    }catch(e){
+      alert(state.lang === 'zh' ? '浏览器拒绝了剪贴板权限，请直接在输入框中按 Ctrl/Cmd+V 粘贴。' : 'Clipboard access denied — please paste with Ctrl/Cmd+V inside the box.');
+    }
+  };
+  $('#sampleBtn').onclick = () => {
+    const s = SAMPLE_TEXT;
+    $('#textInput').value = s; state.text = s; renderAll();
+  };
+  $('#langBtn').onclick = () => { state.lang = state.lang === 'zh' ? 'en' : 'zh'; store.set('tl_lang', state.lang); applyI18n(); };
+  $('#themeBtn').onclick = () => {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    store.set('tl_theme', state.theme);
+    document.documentElement.dataset.theme = state.theme;
+    $('#themeBtn').textContent = state.theme === 'dark' ? '☀' : '☾';
+  };
+  $('#refreshBtn').onclick = () => loadLiveData();
+  $('#sortSel').onchange = e => { state.sort = e.target.value; renderAll(); };
+  $('#scaleSel').onchange = e => { state.scale = e.target.value; renderChart(); };
+  $('#searchBox').addEventListener('input', e => { state.search = e.target.value; clearTimeout(debounceTimer); debounceTimer = setTimeout(renderAll, 180); });
+}
+
+const SAMPLE_TEXT = `大语言模型（LLM）并不真正"理解"文字：它们先把文本切分成 token——可能是一个汉字、半个单词、一段标点，甚至一串字节。Token 是大模型世界的通用货币：计费、上下文窗口、速率限制，全都按 token 计算。
+
+Token 是大模型处理文本的基本单位。The quick brown fox jumps over the lazy dog. A rough benchmark: 1234567890 + "智能体工作流" = ? Context windows have grown from 4K to 1M+ tokens, 而价格却在持续下降。
+
+ paste this sample to see how different models count the same text differently.`;
+
+/* ================= 启动 ================= */
+document.documentElement.dataset.theme = state.theme;
+$('#themeBtn').textContent = state.theme === 'dark' ? '☀' : '☾';
+$('#sortSel').value = state.sort;
+bind();
+applyI18n();
+renderAll();
+initTokenizer();
+loadLiveData();
+</script>
+</body>
+</html>
