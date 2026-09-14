@@ -1,5 +1,5 @@
 {
- "updated": 1789382949646,
+ "updated": 1789383056162,
  "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
  "models": {
   "gpt5": {
