@@ -284,6 +284,7 @@
     <div class="faq-item"><h3 data-i18n="faq2q">计数结果精确吗？</h3><p data-i18n="faq2a">OpenAI 系模型为官方 o200k / cl100k 分词器逐 token 计算，与官方完全一致；其他厂商（Claude、Gemini、DeepSeek 等）词表未公开，按经验系数估算，误差约 ±10%~20%，页面中以「估算」徽标标注。</p></div>
     <div class="faq-item"><h3 data-i18n="faq3q">这个工具收费吗？文本安全吗？</h3><p data-i18n="faq3a">完全免费，无需注册。所有计数都在你的浏览器本地完成，文本不会上传到任何服务器；页面唯一的外部请求是拉取模型价格数据。</p></div>
     <div class="faq-item"><h3 data-i18n="faq4q">支持哪些模型？数据多久更新？</h3><p data-i18n="faq4a">覆盖 OpenAI、Anthropic、Google、DeepSeek、阿里通义、智谱、月之暗面、xAI、Meta、Mistral 等 22+ 主流模型；上下文窗口与价格自动同步 LiteLLM 开源数据库（可手动刷新），断网时使用内置兜底数据。</p></div>
+    <div class="faq-item"><h3 data-i18n="faq5q">为什么 Llama 4 Scout 显示 10M 上下文？可信吗？</h3><p data-i18n="faq5a">10M 是 Meta 官方公布的技术规格（Scout 采用 MoE 架构与 iRoPE 设计，宣称支持千万级 token 上下文），本页展示的均为各厂商官方标称值。但实际使用要注意：Llama 4 是开源权重，各家托管商实际开放的上下文大多只有 128K–1M，几乎没有 API 真正提供 10M 输入；且社区评测显示超长上下文下的检索与推理质量会明显衰减。建议把它理解为“工程上限”而非“日常可用长度”。</p></div>
   </section>
 </main>
 
@@ -339,6 +340,8 @@ const I18N = {
     faq3a:'完全免费，无需注册。所有计数都在你的浏览器本地完成，文本不会上传到任何服务器；页面唯一的外部请求是拉取模型价格数据。',
     faq4q:'支持哪些模型？数据多久更新？',
     faq4a:'覆盖 OpenAI、Anthropic、Google、DeepSeek、阿里通义、智谱、月之暗面、xAI、Meta、Mistral 等 22+ 主流模型；上下文窗口与价格自动同步 LiteLLM 开源数据库（可手动刷新），断网时使用内置兜底数据。',
+    faq5q:'为什么 Llama 4 Scout 显示 10M 上下文？可信吗？',
+    faq5a:'10M 是 Meta 官方公布的技术规格（Scout 采用 MoE 架构与 iRoPE 设计，宣称支持千万级 token 上下文），本页展示的均为各厂商官方标称值。但实际使用要注意：Llama 4 是开源权重，各家托管商实际开放的上下文大多只有 128K–1M，几乎没有 API 真正提供 10M 输入；且社区评测显示超长上下文下的检索与推理质量会明显衰减。建议把它理解为“工程上限”而非“日常可用长度”。',
     dataSource:'数据来源：LiteLLM model_prices_and_context_window（开源 · 社区维护）· 分词：js-tiktoken（o200k / cl100k）',
     copyright:'TokenLens · 仅供参考，定价可能有滞后，实际费用以各厂商官网为准。',
     dsLive:'在线数据 · LiteLLM', dsCached:'缓存数据', dsBundled:'内置数据 · 离线', dsLoading:'正在同步最新模型数据…',
@@ -385,6 +388,8 @@ const I18N = {
     faq3a:'Completely free, no sign-up. All counting runs locally in your browser and your text is never uploaded — the only external request is fetching model pricing data.',
     faq4q:'Which models are supported? How fresh is the data?',
     faq4a:'22+ models from OpenAI, Anthropic, Google, DeepSeek, Alibaba Qwen, Z.ai GLM, Moonshot Kimi, xAI, Meta and Mistral. Context windows and prices sync automatically from the open-source LiteLLM database (manual refresh available); a built-in snapshot is used offline.',
+    faq5q:'Why does Llama 4 Scout show a 10M context window? Should I trust it?',
+    faq5a:'10M is Meta\'s official spec — Scout uses a Mixture-of-Experts architecture with iRoPE and is announced as supporting up to 10M tokens — and this page shows official vendor claims. Practical caveats: Llama 4 ships as open weights, most hosting providers actually serve only 128K–1M of context, and community benchmarks show retrieval/reasoning quality degrades over very long ranges. Treat 10M as an engineering ceiling rather than an everyday usable length.',
     dataSource:'Data: LiteLLM model_prices_and_context_window (open source · community maintained) · Tokenizer: js-tiktoken (o200k / cl100k)',
     copyright:'TokenLens · For reference only; pricing may lag — check vendor pages for actual costs.',
     dsLive:'Live · LiteLLM', dsCached:'Cached data', dsBundled:'Built-in data · offline', dsLoading:'Syncing latest models…',
