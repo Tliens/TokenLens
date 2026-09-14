@@ -1099,6 +1099,8 @@ function bind(){
   /* capture 挂在 document 上：部分内嵌 WebView 程序化滚动不向 window 派发 scroll 事件 */
   document.addEventListener('scroll', onScroll, { capture: true, passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
+  /* 该类 WebView 甚至完全不派发 scroll 事件：再加轻量轮询兜底（隐藏页跳过） */
+  setInterval(() => { if (!document.hidden) spy(); }, 250);
   tabs.forEach(a => a.addEventListener('click', e => {
     e.preventDefault();
     const target = document.querySelector(a.getAttribute('href'));
