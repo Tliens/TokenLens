@@ -177,6 +177,11 @@
   .faq-item:last-child{border-bottom:none;padding-bottom:0}
   .faq-item h3{margin:0 0 4px;font-size:14px;font-weight:750}
   .faq-item p{margin:0;color:var(--muted);font-size:13px}
+  .tabs{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;padding:6px 13px;margin-bottom:8px;font-size:13px;font-weight:650;color:var(--muted);text-decoration:none;border-radius:999px;white-space:nowrap;transition:.15s}
+  .tab:hover{color:var(--text)}
+  .tab.on{background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent)}
   .calc-controls{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px}
   .calc-lab{display:flex;align-items:baseline;gap:8px;font-size:13px;font-weight:650;margin-bottom:6px}
   .calc-lab output{font-size:17px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
@@ -203,6 +208,12 @@
     <button class="iconbtn" id="langBtn">EN</button>
     <button class="iconbtn" id="themeBtn">☾</button>
   </div>
+  <nav class="tabs" id="topTabs" aria-label="sections">
+    <a href="#sec-input" class="tab" data-i18n="tabInput">文本计数</a>
+    <a href="#sec-context" class="tab" data-i18n="tabContext">上下文对比</a>
+    <a href="#sec-cost" class="tab" data-i18n="tabCost">费用对比</a>
+    <a href="#sec-calc" class="tab on" data-i18n="tabCalc">成本计算器</a>
+  </nav>
 </header>
 
 <main>
@@ -212,7 +223,7 @@
   </section>
 
   <!-- ① 输入 -->
-  <section class="card">
+  <section class="card" id="sec-input">
     <h2 data-i18n="inputTitle">① 粘贴你的文本</h2>
     <p class="sub" data-i18n="inputSub">所有计数均在浏览器本地完成，文本不会离开你的设备。</p>
     <textarea id="textInput" data-i18n-ph="inputPh" placeholder="在此粘贴或输入文本……支持中英混排。" spellcheck="false"></textarea>
@@ -234,7 +245,7 @@
   </section>
 
   <!-- ② 上下文窗口对比 -->
-  <section class="card">
+  <section class="card" id="sec-context">
     <h2 data-i18n="chartTitle">② 各模型上下文窗口对比</h2>
     <p class="sub" data-i18n="chartSub">按厂商筛选、搜索或排序；柱上的红色刻度表示你的文本在上下文中的占用位置。</p>
     <div class="controls">
@@ -259,7 +270,7 @@
   </section>
 
   <!-- ③ 费用对比 -->
-  <section class="card">
+  <section class="card" id="sec-cost">
     <h2 data-i18n="tableTitle">③ 模型费用与容量对比</h2>
     <p class="sub" data-i18n="tableSub">「本次输入费用」= 把你粘贴的整段文本作为一次输入发送的花费（不含输出）。</p>
     <div class="tw">
@@ -280,7 +291,7 @@
   </section>
 
   <!-- ④ 月度成本计算器 -->
-  <section class="card">
+  <section class="card" id="sec-calc">
     <h2 data-i18n="calcTitle">④ 月度成本计算器</h2>
     <p class="sub" data-i18n="calcSub">拖动滑杆设置你的应用规模，实时对比各模型每月账单（输入 + 输出）。</p>
     <div class="calc-controls">
@@ -343,6 +354,10 @@ const store = {
 const I18N = {
   zh: {
     appSub:'大模型 Token 计数 · 上下文 · 成本对比',
+    tabInput:'文本计数',
+    tabContext:'上下文对比',
+    tabCost:'费用对比',
+    tabCalc:'成本计算器',
     inputTitle:'① 粘贴你的文本',
     inputSub:'所有计数均在浏览器本地完成，文本不会离开你的设备。',
     inputPh:'在此粘贴或输入文本……支持中英混排。',
@@ -403,6 +418,10 @@ const I18N = {
   },
   en: {
     appSub:'LLM Token Counter · Context · Cost',
+    tabInput:'Counter',
+    tabContext:'Context',
+    tabCost:'Cost',
+    tabCalc:'Calculator',
     inputTitle:'① Paste your text',
     inputSub:'All counting happens locally in your browser — your text never leaves this device.',
     inputPh:'Paste or type your text here… mixed Chinese & English supported.',
@@ -1060,6 +1079,31 @@ function bind(){
     $('#copyBtn').textContent = t('copied');
     setTimeout(() => { $('#copyBtn').textContent = t('copyResults'); }, 1500);
   };
+  // 顶部 Tab：平滑滚动到区块 + 滚动时高亮当前位置（scrollspy）
+  const header = document.querySelector('header');
+  const tabs = [...document.querySelectorAll('#topTabs .tab')];
+  tabs.forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (!target) return;
+    const y = target.getBoundingClientRect().top + window.scrollY - header.offsetHeight - 8;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    history.replaceState(null, '', a.getAttribute('href'));
+  }));
+  const spy = () => {
+    const pos = window.scrollY + header.offsetHeight + 48;
+    let cur = 0;
+    tabs.forEach((a, i) => {
+      const s = document.getElementById(a.getAttribute('href').slice(1));
+      if (s && s.offsetTop <= pos) cur = i;
+    });
+    tabs.forEach((t, i) => t.classList.toggle('on', i === cur));
+  };
+  let spyTick = false;
+  window.addEventListener('scroll', () => {
+    if (!spyTick){ spyTick = true; requestAnimationFrame(() => { spy(); spyTick = false; }); }
+  }, { passive: true });
+  spy();
 }
 
 const SAMPLE_TEXT = `大语言模型（LLM）并不真正"理解"文字：它们先把文本切分成 token——可能是一个汉字、半个单词、一段标点，甚至一串字节。Token 是大模型世界的通用货币：计费、上下文窗口、速率限制，全都按 token 计算。
