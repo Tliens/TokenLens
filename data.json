@@ -1,5 +1,5 @@
 {
- "updated": 1789383056162,
+ "updated": 1790152352142,
  "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
  "models": {
   "gpt5": {
@@ -45,11 +45,11 @@
    "pout": 4.4
   },
   "opus": {
-   "key": "claude-opus-5",
+   "key": "claude-opus-5-5",
    "ctx": 1000000,
    "out": 128000,
-   "pin": 5,
-   "pout": 25
+   "pin": 4,
+   "pout": 20
   },
   "sonnet": {
    "key": "claude-sonnet-5",
@@ -136,18 +136,18 @@
    "pout": 2.5
   },
   "llamamav": {
-   "key": "together_ai/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
-   "ctx": null,
-   "out": null,
-   "pin": 0.27,
-   "pout": 0.85
+   "key": "meta_llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+   "ctx": 1000000,
+   "out": 4028,
+   "pin": null,
+   "pout": null
   },
   "llamascout": {
-   "key": "together_ai/meta-llama/Llama-4-Scout-17B-16E-Instruct",
-   "ctx": null,
-   "out": null,
-   "pin": 0.18,
-   "pout": 0.59
+   "key": "meta_llama/Llama-4-Scout-17B-16E-Instruct-FP8",
+   "ctx": 10000000,
+   "out": 4028,
+   "pin": null,
+   "pout": null
   },
   "mistral": {
    "key": "mistral/mistral-large-latest",
