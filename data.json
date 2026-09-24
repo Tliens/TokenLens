@@ -1,5 +1,5 @@
 {
- "updated": 1790152352142,
+ "updated": 1790238320200,
  "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
  "models": {
   "gpt5": {
@@ -143,11 +143,11 @@
    "pout": null
   },
   "llamascout": {
-   "key": "meta_llama/Llama-4-Scout-17B-16E-Instruct-FP8",
-   "ctx": 10000000,
-   "out": 4028,
-   "pin": null,
-   "pout": null
+   "key": "together_ai/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+   "ctx": 1048576,
+   "out": 1048576,
+   "pin": 0.18,
+   "pout": 0.59
   },
   "mistral": {
    "key": "mistral/mistral-large-latest",
