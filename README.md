@@ -3,7 +3,7 @@
 大模型 Token 计数 · 上下文窗口对比 · 成本估算 —— 纯前端单文件工具
 LLM Token Counter · Context Window Comparison · Cost Estimates — single-file, 100% client-side
 
-🔗 **在线使用 / Live**: https://tliens.github.io/TokenLens/
+🔗 **在线使用 / Live**: https://tokenlens.kuige.me/
 
 ## 特性 / Features
 

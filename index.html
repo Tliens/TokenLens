@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TokenLens — 免费 Token 计数器 & 大模型成本对比 | Free LLM Token Counter</title>
 <meta name="description" content="免费在线 Token 计数器：OpenAI 官方分词器精确计数，一屏对比 GPT-5、Claude、Gemini、DeepSeek、Qwen、GLM、Kimi 等 22+ 大模型的上下文窗口与 API 价格。纯本地计算、免注册、文本不上传。Free token counter & LLM cost comparison.">
-<link rel="canonical" href="https://tliens.github.io/TokenLens/">
-<link rel="alternate" hreflang="zh" href="https://tliens.github.io/TokenLens/?lang=zh">
-<link rel="alternate" hreflang="en" href="https://tliens.github.io/TokenLens/?lang=en">
-<link rel="alternate" hreflang="x-default" href="https://tliens.github.io/TokenLens/">
+<link rel="canonical" href="https://tokenlens.kuige.me/">
+<link rel="alternate" hreflang="zh" href="https://tokenlens.kuige.me/?lang=zh">
+<link rel="alternate" hreflang="en" href="https://tokenlens.kuige.me/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://tokenlens.kuige.me/">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
@@ -16,17 +16,17 @@
 <meta property="og:site_name" content="TokenLens">
 <meta property="og:title" content="TokenLens — Free Token Counter & LLM Cost Comparison | Token 计数器">
 <meta property="og:description" content="Count tokens exactly and compare context windows & API prices across 22+ LLMs (GPT-5, Claude, Gemini, DeepSeek, Qwen, GLM, Kimi…). 100% local, free, no sign-up. 精确 Token 计数与大模型成本对比。">
-<meta property="og:url" content="https://tliens.github.io/TokenLens/">
-<meta property="og:image" content="https://tliens.github.io/TokenLens/og-image.png">
+<meta property="og:url" content="https://tokenlens.kuige.me/">
+<meta property="og:image" content="https://tokenlens.kuige.me/og-image.png">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:locale:alternate" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="TokenLens — Free Token Counter & LLM Cost Comparison">
 <meta name="twitter:description" content="Exact token counting + context window & API price comparison for 22+ LLMs. Free, local, no sign-up.">
-<meta name="twitter:image" content="https://tliens.github.io/TokenLens/og-image.png">
+<meta name="twitter:image" content="https://tokenlens.kuige.me/og-image.png">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
-{"@type":"WebApplication","name":"TokenLens","url":"https://tliens.github.io/TokenLens/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","description":"Free online token counter and LLM cost & context window comparison for GPT-5, Claude, Gemini, DeepSeek, Qwen, GLM, Kimi and 22+ models.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"inLanguage":["zh-CN","en"]},
+{"@type":"WebApplication","name":"TokenLens","url":"https://tokenlens.kuige.me/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","description":"Free online token counter and LLM cost & context window comparison for GPT-5, Claude, Gemini, DeepSeek, Qwen, GLM, Kimi and 22+ models.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"inLanguage":["zh-CN","en"]},
 {"@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"How many tokens is 1000 Chinese characters?","acceptedAnswer":{"@type":"Answer","text":"With GPT-5 / GPT-4o's o200k tokenizer roughly 900-1100 tokens (about 1 token per character); the older cl100k needs about 1400; Chinese-optimized models like DeepSeek and Qwen need only 600-800. Paste your text into TokenLens for exact per-model numbers."}},
 {"@type":"Question","name":"Is the token count exact?","acceptedAnswer":{"@type":"Answer","text":"OpenAI models are counted with the official o200k/cl100k tokenizers, identical to OpenAI's own count. Other vendors' vocabs are not public, so those numbers are empirical estimates (±10-20%)."}},
@@ -341,7 +341,7 @@
 <footer class="foot">
   <span data-i18n="dataSource">数据来源：LiteLLM model_prices_and_context_window（开源 · 社区维护）· 分词：js-tiktoken（o200k / cl100k）</span>
   <span data-i18n="copyright">TokenLens · 仅供参考，定价可能有滞后，实际费用以各厂商官网为准。</span>
-  <span><a href="https://github.com/Tliens/TokenLens" target="_blank" rel="noopener">GitHub</a> · <a href="https://x.com/shi_kui8457" target="_blank" rel="noopener">X (Twitter)</a> · <a href="https://tliens.github.io/" target="_blank" rel="noopener">更多作品</a></span>
+  <span><a href="https://github.com/Tliens/TokenLens" target="_blank" rel="noopener">GitHub</a> · <a href="https://x.com/shi_kui8457" target="_blank" rel="noopener">X (Twitter)</a> · <a href="https://kuige.me/" target="_blank" rel="noopener">更多作品</a></span>
 </footer>
 
 <script type="module">
@@ -1068,7 +1068,7 @@ function bind(){
       (zh ? '字符 ' : 'chars ') + fmtInt(state.text.length) + ' ≈ ' + fmtInt(base) + ' tokens (o200k)',
       zh ? '本次输入费用（美元）：' : 'Input cost (USD):',
       ...rows.map((r, i) => `${i + 1}. ${r.name}: ${fmtMoney(r.cost)}`),
-      'https://tliens.github.io/TokenLens/',
+      'https://tokenlens.kuige.me/',
     ];
     const txt = lines.join('\n');
     try{ await navigator.clipboard.writeText(txt); }
