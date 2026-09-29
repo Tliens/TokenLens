@@ -1,5 +1,5 @@
 {
- "updated": 1790238320200,
+ "updated": 1790675242995,
  "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
  "models": {
   "gpt5": {
@@ -52,7 +52,7 @@
    "pout": 20
   },
   "sonnet": {
-   "key": "claude-sonnet-5",
+   "key": "claude-sonnet-5-5",
    "ctx": 1000000,
    "out": 128000,
    "pin": 2,
