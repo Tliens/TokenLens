@@ -1,5 +1,5 @@
 {
- "updated": 1790675242995,
+ "updated": 1791455528835,
  "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
  "models": {
   "gpt5": {
@@ -59,11 +59,11 @@
    "pout": 10
   },
   "haiku": {
-   "key": "claude-haiku-4-5",
-   "ctx": 200000,
-   "out": 64000,
-   "pin": 1,
-   "pout": 5
+   "key": "claude-haiku-5-5",
+   "ctx": 1000000,
+   "out": 128000,
+   "pin": 0.1,
+   "pout": 0.5
   },
   "gempro": {
    "key": "gemini-2.5-pro",
