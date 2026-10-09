@@ -9,7 +9,8 @@
 <link rel="alternate" hreflang="zh" href="https://tokenlens.kuige.me/?lang=zh">
 <link rel="alternate" hreflang="en" href="https://tokenlens.kuige.me/?lang=en">
 <link rel="alternate" hreflang="x-default" href="https://tokenlens.kuige.me/">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" href="favicon.png?v=2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <meta property="og:type" content="website">
@@ -196,19 +197,44 @@
     main{padding:16px 14px 40px}
     .stat .v{font-size:21px}.stat.big .v{font-size:25px}
   }
+/* ── KuiGe 站群统一基座 ───────────────────── */
+:root{--kg-ink:#1f2430;--kg-sub:#6b7280;--kg-accent:#f2603c;--kg-line:#e8e6e1;--kg-bg:#faf9f7}
+.kg-top{position:sticky;top:0;z-index:60;background:rgba(250,249,247,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--kg-line)}
+.kg-top-in{max-width:1120px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.kg-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--kg-ink);font-weight:700;font-size:17px}
+.kg-brand img{width:32px;height:32px;border-radius:9px;display:block}
+.kg-brand small{font-weight:500;color:var(--kg-sub);font-size:12px}
+.kg-nav{display:flex;align-items:center;gap:14px;font-size:14px}
+.kg-nav a{color:var(--kg-sub);text-decoration:none}
+.kg-nav a:hover{color:var(--kg-ink)}
+.kg-entry{background:var(--kg-ink);color:#fff!important;padding:6px 14px;border-radius:999px;text-decoration:none;font-size:13px}
+.kg-entry:hover{background:var(--kg-accent)}
+.kg-foot{background:var(--kg-bg);border-top:1px solid var(--kg-line);color:var(--kg-sub);font-size:13px;margin-top:0}
+.kg-foot-in{max-width:1120px;margin:0 auto;padding:36px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.kg-foot img{width:44px;height:44px;border-radius:12px;margin-bottom:2px}
+.kg-foot-brand{color:var(--kg-ink);font-weight:700;font-size:15px;margin:0}
+.kg-foot-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px}
+.kg-foot-links a{color:var(--kg-sub);text-decoration:none}
+.kg-foot-links a:hover{color:var(--kg-accent)}
+.kg-foot-copy{margin:4px 0 0;color:#9ca3af;font-size:12px}
+@media(max-width:640px){.kg-nav a:not(.kg-entry){display:none}}
 </style>
 </head>
 <body>
-<header>
-  <div class="header-in">
-    <div class="brand"><div class="logo">T</div><span>TokenLens</span><small data-i18n="appSub">大模型 Token 计数 · 上下文 · 成本对比</small></div>
-    <div class="spacer"></div>
-    <span class="status-chip"><span class="dot" id="statusDot"></span><span id="statusText"></span></span>
-    <a class="iconbtn kuige-entry" href="https://kuige.me/" target="_blank" rel="noopener" title="kuige.me" style="width:auto;padding:0 10px;font-size:12.5px;text-decoration:none"><img src="https://kuige.me/logo.png" alt="" width="16" height="16" style="width:16px;height:16px;border-radius:50%;vertical-align:-3px;margin-right:6px">魁歌</a>
-<button class="iconbtn" id="refreshBtn" title="LiteLLM">↻</button>
-    <button class="iconbtn" id="langBtn">EN</button>
-    <button class="iconbtn" id="themeBtn">☾</button>
-    <a class="iconbtn" href="https://x.com/kuige_me" target="_blank" rel="noopener" title="关注我的 X (Twitter)" aria-label="X (Twitter)" style="display:inline-flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+<header class="kg-top">
+  <div class="kg-top-in">
+    <a class="kg-brand" href="./">
+      <img src="favicon.png?v=2" alt="TokenLens 吉祥物">
+      <span>TokenLens 词元工坊<small data-i18n="appSub">大模型 Token 计数 · 上下文 · 成本对比</small></span>
+    </a>
+    <nav class="kg-nav">
+      <span class="status-chip"><span class="dot" id="statusDot"></span><span id="statusText"></span></span>
+      <button class="iconbtn" id="refreshBtn" title="LiteLLM">↻</button>
+      <button class="iconbtn" id="langBtn">EN</button>
+      <button class="iconbtn" id="themeBtn">☾</button>
+      <a class="iconbtn" href="https://x.com/kuige_me" target="_blank" rel="noopener" title="关注我的 X (Twitter)" aria-label="X (Twitter)" style="display:inline-flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a class="kg-entry" href="https://kuige.me/" target="_blank" rel="noopener">魁歌 · 全部作品</a>
+    </nav>
   </div>
   <nav class="tabs" id="topTabs" aria-label="sections">
     <a href="#sec-input" class="tab" data-i18n="tabInput">文本计数</a>
@@ -339,10 +365,22 @@
   </section>
 </main>
 
-<footer class="foot">
-  <span data-i18n="dataSource">数据来源：LiteLLM model_prices_and_context_window（开源 · 社区维护）· 分词：js-tiktoken（o200k / cl100k）</span>
-  <span data-i18n="copyright">TokenLens · 仅供参考，定价可能有滞后，实际费用以各厂商官网为准。</span>
-  <span><a href="https://x.com/kuige_me" target="_blank" rel="noopener">X (Twitter)</a></span>
+<footer class="kg-foot">
+  <div class="kg-foot-in">
+    <img src="favicon.png?v=2" alt="TokenLens 吉祥物">
+    <p class="kg-foot-brand">TokenLens 词元工坊</p>
+    <nav class="kg-foot-links">
+      <a href="https://kuige.me/" target="_blank" rel="noopener">魁歌主页</a>
+      <a href="https://icongems.kuige.me/" target="_blank" rel="noopener">IconGems</a>
+      <a href="https://ai-model-rank.kuige.me/" target="_blank" rel="noopener">AI Rank</a>
+      <a href="https://jsonlens.kuige.me/" target="_blank" rel="noopener">JSON Lens</a>
+      <a href="https://sse-inspector.kuige.me/" target="_blank" rel="noopener">SSE Inspector</a>
+      <a href="https://x.com/kuige_me" target="_blank" rel="noopener">X (Twitter)</a>
+    </nav>
+    <div data-i18n="dataSource">数据来源：LiteLLM model_prices_and_context_window（开源 · 社区维护）· 分词：js-tiktoken（o200k / cl100k）</div>
+    <div data-i18n="copyright">TokenLens · 仅供参考，定价可能有滞后，实际费用以各厂商官网为准。</div>
+    <p class="kg-foot-copy">© 2026 魁歌 KuiGe · 用 AI 构建 · <a href="https://kuige.me/" style="color:inherit">kuige.me</a></p>
+  </div>
 </footer>
 
 <script type="module">
