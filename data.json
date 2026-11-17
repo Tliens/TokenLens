@@ -1,5 +1,5 @@
 {
- "updated": 1794394414954,
+ "updated": 1794916064405,
  "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
  "models": {
   "gpt5": {
@@ -94,11 +94,11 @@
    "pout": 3.96
   },
   "qwenmax": {
-   "key": "dashscope/qwen3.8-max",
+   "key": "dashscope/qwen4-max",
    "ctx": 991808,
    "out": 131072,
-   "pin": 2,
-   "pout": 6
+   "pin": 1.5,
+   "pout": 4.5
   },
   "qwenplus": {
    "key": "dashscope/qwen3.7-plus",
