@@ -1,5 +1,5 @@
 {
- "updated": 1794916064405,
+ "updated": 1795088104667,
  "source": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
  "models": {
   "gpt5": {
@@ -151,10 +151,10 @@
   },
   "mistral": {
    "key": "mistral/mistral-large-latest",
-   "ctx": 262144,
-   "out": 262144,
-   "pin": 0.5,
-   "pout": 1.5
+   "ctx": 1048576,
+   "out": 1048576,
+   "pin": 0.7,
+   "pout": 2.1
   }
  }
 }
